@@ -299,22 +299,8 @@ angular.module('icestudio')
                 });
             }
             // Events
-
-            var shiftPressed = false;
-
-            $(document).on('keydown', function (evt) {
-                if (utils.hasShift(evt)) {
-                    shiftPressed = true;
-                }
-            });
-            $(document).on('keyup', function (evt) {
-                if (!utils.hasShift(evt)) {
-                    shiftPressed = false;
-                }
-            });
-
-            $(document).on('disableSelected', function () {
-                if (!shiftPressed) {
+            $(document).on('disableSelected', function (evt) {
+                if (!evt.shiftKey) {
                     disableSelected();
                 }
             });
@@ -351,7 +337,7 @@ angular.module('icestudio')
                 }
                 else {
                     // Toggle selected cell
-                    if (shiftPressed) {
+                    if (evt.shiftKey) {
                         var cell = selection.get($(evt.target).data('model'));
                         selection.reset(selection.without(cell));
                         selectionView.destroySelectionBox(cell);
@@ -366,11 +352,11 @@ angular.module('icestudio')
 
             paper.on('cell:pointerclick', function (cellView, evt, x, y) {
                 //M+
-                if (!checkInsideViewBox(cellView, x, y)) {
+                if (!cellView.$box || !checkInsideViewBox(cellView, x, y)) {
                     // Out of the view box
                     return;
                 }
-                if (shiftPressed) {
+                if (evt.shiftKey) {
                     // If Shift is pressed process the click (no Shift+dblClick allowed)
                     if (paper.options.enabled) {
                         if (!cellView.model.isLink()) {
@@ -388,12 +374,12 @@ angular.module('icestudio')
 
             paper.on('cell:pointerdblclick', function (cellView, evt, x, y) {
 
-                if (x && y && !checkInsideViewBox(cellView, x, y)) {
+                if (!cellView.$box || (x && y && !checkInsideViewBox(cellView, x, y)) ) {
                     // Out of the view box
                     return;
                 }
                 selectionView.cancelSelection();
-                if (!shiftPressed) {
+                if (!evt.shiftKey) {
                     // Allow dblClick if Shift is not pressed
                     var type = cellView.model.get('blockType');
                     var blockId = cellView.model.get('id');

@@ -379,8 +379,8 @@ joint.ui.SelectionView = Backbone.View.extend({
     var el = view.$box.children().not('.hidden').first();
 
     var position = el.position();
-    var width = el.outerWidth();
-    var height = el.outerHeight();
+    var width = bbox.width;
+    var height = bbox.height;
 
     $('div[data-model=\'' + element.get('id') + '\']').css({
       left: (bbox.x + position.left) * state.zoom + state.pan.x +
