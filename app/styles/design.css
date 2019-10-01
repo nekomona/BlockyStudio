@@ -470,6 +470,24 @@ g {
   transition: opacity 0.2s;
 }
 
+.code-block .code-content .header {
+  display: flex;
+  padding: 0 6px;
+  margin-top: 6px;
+  height: 18px;
+}
+
+.code-block .code-content .header label {
+  flex-grow: 1;
+  height: 100%;
+  text-align: center;
+  font-size: 14px;
+  line-height: 18px;
+  color: #222;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
 .code-block .code-content {
   position: absolute;
   background: #C0DFEB;
@@ -479,7 +497,7 @@ g {
 
 .code-block .code-editor {
   position: absolute;
-  top: 0;
+  top: 24px;
   left: 0;
   right: 0;
   bottom: 0;
@@ -488,6 +506,7 @@ g {
   border: 1px solid #AAA;
   pointer-events: auto;
 }
+
 
 .info-block {
   position: absolute;

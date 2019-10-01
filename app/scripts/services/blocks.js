@@ -514,6 +514,7 @@ angular.module('icestudio')
         id: null,
         data: {
           code: '',
+          name: '',
           params: [],
           ports: { in: [], out: [] }
         },
@@ -524,59 +525,83 @@ angular.module('icestudio')
       var defaultValues = [
         '',
         '',
+        '',
         ''
       ];
       if (block) {
         blockInstance = block;
         var index, port;
+        if (block.data.name) {
+          defaultValues[0] = block.data.name;
+        }
         if (block.data.ports) {
           var inPorts = [];
           for (index in block.data.ports.in) {
             port = block.data.ports.in[index];
             inPorts.push(port.name + (port.range || ''));
           }
-          defaultValues[0] = inPorts.join(' , ');
+          defaultValues[1] = inPorts.join(' , ');
           var outPorts = [];
           for (index in block.data.ports.out) {
             port = block.data.ports.out[index];
             outPorts.push(port.name + (port.range || ''));
           }
-          defaultValues[1] = outPorts.join(' , ');
+          defaultValues[2] = outPorts.join(' , ');
         }
         if (block.data.params) {
           var params = [];
           for (index in block.data.params) {
             params.push(block.data.params[index].name);
           }
-          defaultValues[2] = params.join(' , ');
+          defaultValues[3] = params.join(' , ');
         }
       }
       var formSpecs = [
         {
           type: 'text',
-          title: gettextCatalog.getString('Enter the input ports'),
+          title: gettextCatalog.getString('Enter the module name(optional)'),
           value: defaultValues[0]
         },
         {
           type: 'text',
-          title: gettextCatalog.getString('Enter the output ports'),
+          title: gettextCatalog.getString('Enter the input ports'),
           value: defaultValues[1]
         },
         {
           type: 'text',
-          title: gettextCatalog.getString('Enter the parameters'),
+          title: gettextCatalog.getString('Enter the output ports'),
           value: defaultValues[2]
+        },
+        {
+          type: 'text',
+          title: gettextCatalog.getString('Enter the parameters'),
+          value: defaultValues[3]
         }
       ];
       utils.renderForm(formSpecs, function(evt, values) {
-        var inPorts = values[0].replace(/\s*,\s*/g, ',').split(',');
-        var outPorts = values[1].replace(/\s*,\s*/g, ',').split(',');
-        var params = values[2].replace(/\s*,\s*/g, ',').split(',');
+        var inputName = values[0];
+        var inPorts = values[1].replace(/\s*,\s*/g, ',').split(',');
+        var outPorts = values[2].replace(/\s*,\s*/g, ',').split(',');
+        var params = values[3].replace(/\s*,\s*/g, ',').split(',');
         var allNames = [];
         if (resultAlert) {
           resultAlert.dismiss(false);
         }
         // Validate values
+        if (inputName !== '') {
+          var paramInfo = utils.parseParamLabel(inputName, common.PATTERN_GLOBAL_PARAM_LABEL);
+          if (paramInfo) {
+            evt.cancel = false;
+            blockInstance.data.name = paramInfo.name;
+          }
+          else {
+            evt.cancel = true;
+            resultAlert = alertify.warning(gettextCatalog.getString('Wrong block name {{name}}', { name: inputName }));
+            return;
+          }
+        } else {
+          blockInstance.data.name = '';
+        }
         var i, inPortInfo, inPortInfos = [];
         for (i in inPorts) {
           if (inPorts[i]) {

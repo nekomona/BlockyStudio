@@ -1444,7 +1444,11 @@ joint.shapes.ice.CodeView = joint.shapes.ice.ModelView.extend({
     this.$box = $(joint.util.template(
       '\
       <div class="code-block">\
-        <div class="code-content"></div>\
+        <div class="code-content">\
+          <div class="header">\
+            <label></label>\
+          </div>\
+        </div>\
         <div class="code-editor" id="' + editorLabel + '"></div>\
         <script>\
           var ' + editorLabel + ' = ace.edit("' + editorLabel + '");\
@@ -1463,6 +1467,7 @@ joint.shapes.ice.CodeView = joint.shapes.ice.ModelView.extend({
 
     this.editorSelector = this.$box.find('.code-editor');
     this.contentSelector = this.$box.find('.code-content');
+    this.headerSelector = this.$box.find('.header');
 
     this.model.on('change', this.updateBox, this);
     this.model.on('remove', this.removeBox, this);
@@ -1555,6 +1560,11 @@ joint.shapes.ice.CodeView = joint.shapes.ice.ModelView.extend({
     this.apply({ ini: true });
   },
 
+  applyName: function () {
+    var name = this.model.get('data').name;
+    this.$box.find('label').text(name);
+  },
+
   applyValue: function (opt) {
     this.updating = true;
 
@@ -1597,6 +1607,7 @@ joint.shapes.ice.CodeView = joint.shapes.ice.ModelView.extend({
   },
 
   apply: function (opt) {
+    this.applyName();
     this.applyValue(opt);
     if (this.editor) {
       this.editor.resize();
@@ -1650,6 +1661,7 @@ joint.shapes.ice.CodeView = joint.shapes.ice.ModelView.extend({
         this.prevZoom = state.zoom;
         // Scale editor
         this.editorSelector.css({
+          top: 24 * state.zoom,
           margin: 7 * state.zoom,
           'border-radius': 5 * state.zoom,
           'border-width': state.zoom + 0.5
@@ -1708,13 +1720,20 @@ joint.shapes.ice.CodeView = joint.shapes.ice.ModelView.extend({
     }
 
     // Render content
+    var topOffset = (data.name) ? 0 : 24;
     this.contentSelector.css({
       left: Math.round(bbox.width / 2.0 * (state.zoom - 1)),
-      top: Math.round(bbox.height / 2.0 * (state.zoom - 1)),
+      top: Math.round((bbox.height + topOffset) / 2.0 * (state.zoom - 1) + topOffset),
       width: Math.round(bbox.width),
-      height: Math.round(bbox.height),
+      height: Math.round(bbox.height - topOffset),
       transform: 'scale(' + state.zoom + ')'
     });
+
+    if (data.name) {
+      this.headerSelector.removeClass('hidden');
+    } else {
+      this.headerSelector.addClass('hidden');
+    }
 
     // Render block
     this.$box.css({
