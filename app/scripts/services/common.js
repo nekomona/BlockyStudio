@@ -91,8 +91,11 @@ angular.module('icestudio')
     this.PATTERN_PORT_LABEL = /^([A-Za-z_][A-Za-z_$0-9]*)?(\[([0-9]+):([0-9]+)\])?$/;
     this.PATTERN_PARAM_LABEL = /^([A-Za-z_][A-Za-z_$0-9]*)?$/;
 
-    this.PATTERN_GLOBAL_PORT_LABEL = /^([^\[\]]+)?(\[([0-9]+):([0-9]+)\])?$/;
-    this.PATTERN_GLOBAL_PARAM_LABEL = /^([^\[\]]+)?$/;
+    //this.PATTERN_GLOBAL_PORT_LABEL = /^([^\[\]]+)?(\[([0-9]+):([0-9]+)\])?$/;
+    //this.PATTERN_GLOBAL_PARAM_LABEL = /^([^\[\]]+)?$/;
+
+    this.PATTERN_GLOBAL_PORT_LABEL = /^([A-Za-z_][A-Za-z_$0-9]*)?(\[([0-9]+):([0-9]+)\])?$/;
+    this.PATTERN_GLOBAL_PARAM_LABEL = /^([A-Za-z_][A-Za-z_$0-9]*)?$/;
 
     function safeDir(_dir, self) {
       if (self.WIN32) {
