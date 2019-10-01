@@ -52,6 +52,31 @@ angular.module('icestudio')
       return files;
     };
 
+    function getModuleName(name, block, i, nameList) {
+      var moduleNames = nameList.moduleNames;
+      if (moduleNames[block.id]) {
+        return moduleNames[block.id];
+      } else {
+        var genname = '';
+        if (block.type === 'basic.code') {
+          if (block.data.name) {
+            genname = name + '_' + block.data.name;
+            if (moduleNames.indexOf(genname) > 0) {
+              genname = name + '_code_' + block.data.name + i.toString();
+            }
+          } else {
+            genname =  name + '_code_' + i.toString();
+          }
+        }
+        moduleNames[block.id] = genname;
+        return genname;
+      }
+    }
+
+    function getInstanceName(name, block, i, opt) {
+
+    }
+
     function header(comment, opt) {
       var header = '';
       var date = new Date();
@@ -347,7 +372,7 @@ angular.module('icestudio')
 
       // Block instances
 
-      content = content.concat(getInstances(name, project.design.graph));
+      content = content.concat(getInstances(name, project.design.graph, project.nameList));
 
         // Restore original graph
         // delete temporal wires
@@ -374,7 +399,7 @@ angular.module('icestudio')
       return content.join('\n');
     }
 
-    function getInstances(name, graph) {
+    function getInstances(name, graph, nameList) {
       var w, wire;
       var instances = [];
       var blocks = graph.blocks;
@@ -394,7 +419,7 @@ angular.module('icestudio')
 
           var instance;
           if (block.type === 'basic.code') {
-            instance = name + '_' + utils.digestId(block.id);
+            instance = getModuleName(name, block, b, nameList);
           }
           else {
             instance = utils.digestId(block.type);
@@ -544,7 +569,8 @@ angular.module('icestudio')
     }
 
     function verilogCompiler(name, project, opt) {
-      var i, data, block, code = '';
+      var i, data, block, code = '', codeModule = '';
+      var nameList = {};
       opt = opt || {};
 
       if (project &&
@@ -557,6 +583,42 @@ angular.module('icestudio')
         // Main module
 
         if (name) {
+
+          // Setup module name dict ahead of compiling
+          if (name === 'main') {
+            project.nameList = nameList;
+            nameList.moduleNames = new Array();
+          } else if (project.nameList) {
+            nameList = project.nameList;
+          }
+
+          // Build modules in prior to content to generate module names 
+
+          // Dependencies modules
+
+          for (var d in dependencies) {
+            dependencies[d].nameList = nameList;
+            codeModule += verilogCompiler(utils.digestId(d), dependencies[d]);
+            delete dependencies[d].nameList;
+          }
+
+          // Code modules
+
+          for (i in blocks) {
+            block = blocks[i];
+            if (block) {
+              if (block.type === 'basic.code') {
+                data = {
+                  //name: name + '_' + utils.digestId(block.id),
+                  name: getModuleName(name, block, i, nameList),
+                  params: block.data.params,
+                  ports: block.data.ports,
+                  content: block.data.code //.replace(/\n+/g, '\n').replace(/\n$/g, '')
+                };
+                codeModule += module(data);
+              }
+            }
+          }
 
           // Initialize input ports
 
@@ -616,6 +678,7 @@ angular.module('icestudio')
             }
           }
 
+
           var params = getParams(project);
           var ports = getPorts(project);
           var content = getContent(name, project);
@@ -650,30 +713,14 @@ angular.module('icestudio')
             content: content
           };
           code += module(data);
-        }
 
-        // Dependencies modules
-
-        for (var d in dependencies) {
-          code += verilogCompiler(utils.digestId(d), dependencies[d]);
-        }
-
-        // Code modules
-
-        for (i in blocks) {
-          block = blocks[i];
-          if (block) {
-            if (block.type === 'basic.code') {
-              data = {
-                name: name + '_' + utils.digestId(block.id),
-                params: block.data.params,
-                ports: block.data.ports,
-                content: block.data.code //.replace(/\n+/g, '\n').replace(/\n$/g, '')
-              };
-              code += module(data);
-            }
+          // release namelist
+          if (name === 'main') {
+            delete opt.nameList;
           }
         }
+
+        code += codeModule;
       }
 
       return code;
