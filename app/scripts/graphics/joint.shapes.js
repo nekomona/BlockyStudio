@@ -1660,12 +1660,21 @@ joint.shapes.ice.CodeView = joint.shapes.ice.ModelView.extend({
       if (this.prevZoom !== state.zoom) {
         this.prevZoom = state.zoom;
         // Scale editor
-        this.editorSelector.css({
-          top: 24 * state.zoom,
-          margin: 7 * state.zoom,
-          'border-radius': 5 * state.zoom,
-          'border-width': state.zoom + 0.5
-        });
+        if (data.name) {
+          this.editorSelector.css({
+            top: 24 * state.zoom,
+            margin: 7 * state.zoom,
+            'border-radius': 5 * state.zoom,
+            'border-width': state.zoom + 0.5
+          });
+        } else {
+          this.editorSelector.css({
+            top: 0,
+            margin: 7 * state.zoom,
+            'border-radius': 5 * state.zoom,
+            'border-width': state.zoom + 0.5
+          });  
+        }
         // Scale annotations
         var annotationSize = Math.round(15 * state.zoom) + 'px';
         this.$box.find('.ace_error').css('background-size', annotationSize + ' ' + annotationSize);
@@ -1720,20 +1729,21 @@ joint.shapes.ice.CodeView = joint.shapes.ice.ModelView.extend({
     }
 
     // Render content
-    var topOffset = (data.name) ? 0 : 24;
     this.contentSelector.css({
       left: Math.round(bbox.width / 2.0 * (state.zoom - 1)),
-      top: Math.round((bbox.height + topOffset) / 2.0 * (state.zoom - 1) + topOffset),
+      top: Math.round(bbox.height / 2.0 * (state.zoom - 1)),
       width: Math.round(bbox.width),
-      height: Math.round(bbox.height - topOffset),
+      height: Math.round(bbox.height),
       transform: 'scale(' + state.zoom + ')'
     });
 
+    
     if (data.name) {
       this.headerSelector.removeClass('hidden');
     } else {
       this.headerSelector.addClass('hidden');
     }
+    
 
     // Render block
     this.$box.css({
