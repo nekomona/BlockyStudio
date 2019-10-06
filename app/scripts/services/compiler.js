@@ -52,10 +52,25 @@ angular.module('icestudio')
       return files;
     };
 
+    function getDependencyModuleName(d, project, nameList) {
+      var genname = '';
+      if (project.package.name) {
+        genname = project.package.name;
+      } else {
+        genname = utils.digestId(d);
+      }
+      nameList.moduleNames[d] = project.package.name;
+      return genname;
+    }
+
     function getModuleName(name, block, i, nameList) {
       var moduleNames = nameList.moduleNames;
       if (moduleNames[block.id]) {
+        // code blocks
         return moduleNames[block.id];
+      } else if (moduleNames[block.type]) {
+        // dependencies blocks
+        return moduleNames[block.type]
       } else {
         var genname = '';
         if (block.type === 'basic.code') {
@@ -67,14 +82,78 @@ angular.module('icestudio')
           } else {
             genname =  name + '_code_' + i.toString();
           }
+          moduleNames[block.id] = genname;
+        } else {
+          genname = utils.digestId(block.type);
+          moduleNames[block.type] = genname;
         }
-        moduleNames[block.id] = genname;
         return genname;
       }
     }
 
-    function getInstanceName(name, block, i, opt) {
+    function getInstanceName(name, block, i, nameList) {
+      var moduleNames = nameList.moduleNames;
+      if (moduleNames[block.id]) {
+        return 'u_' + moduleNames[block.id];
+      } else if (moduleNames[block.type]) {
+        return 'u_' + moduleNames[block.type] + i.toString();
+      } else {
+        return utils.digestId(block.id);
+      }
+    }
 
+    function getPortName(name, block, i, nameList) {
+      var portNames = nameList.portNames;
+
+      if (!portNames[name]) {
+        portNames[name] = new Array();
+      }
+
+      if (portNames[name][block.id]) {
+        return portNames[name][block.id];
+      } else if (block.type === 'basic.input' || block.type === 'basic.output') {
+        var nname = '';
+        if (block.data.name) {
+          nname = block.data.name;
+        } else if(block.type === 'basic.input') {
+          if (block.data.clock === true) {
+            nname = 'clk_in_' + i.toString();
+          } else {
+            nname = 'in_' + i.toString();
+          }
+        } else if(block.type === 'basic.output') {
+          nname = 'out_' + i.toString();
+        } else {
+          nname = utils.digestId(block.id);
+        }
+        portNames[name][block.id] = nname;
+        return nname;
+      } else {
+        return '';
+      }
+    }
+
+    function getParamName(name, block, i, nameList) {
+      var paramNames = nameList.paramNames;
+
+      if (!paramNames[name]) {
+        paramNames[name] = new Array();
+      }
+
+      if (paramNames[name][block.id]) {
+        return paramNames[name][block.id];
+      } else if (block.type === 'basic.constant' || block.type === 'basic.memory') {
+        var nname = '';
+        if (block.data.name) {
+          nname = block.data.name;
+        } else {
+          nname = 'param_' + i.toString();
+        }
+        paramNames[name][block.id] = nname;
+        return nname;
+      } else {
+        return '';
+      }
     }
 
     function header(comment, opt) {
@@ -159,7 +238,7 @@ angular.module('icestudio')
       return code;
     }
 
-    function getParams(project) {
+    function getParams(name, project) {
       var params = [];
       var graph = project.design.graph;
 
@@ -167,12 +246,12 @@ angular.module('icestudio')
         var block = graph.blocks[i];
         if (block.type === 'basic.constant') {
           params.push({
-            name: utils.digestId(block.id),
+            name: getParamName(name, block, i, project.nameList),
             value: block.data.value
           });
         }
         else if (block.type === 'basic.memory') {
-          var name = utils.digestId(block.id);
+          var name = getParamName(name, block, i, project.nameList);
           params.push({
             name: name,
             value: '"' + name + '.list"'
@@ -183,7 +262,7 @@ angular.module('icestudio')
       return params;
     }
 
-    function getPorts(project) {
+    function getPorts(name, project) {
       var ports = {
         in: [],
         out: []
@@ -192,15 +271,16 @@ angular.module('icestudio')
 
       for (var i in graph.blocks) {
         var block = graph.blocks[i];
+        var pname = getPortName(name, block, i, project.nameList);
         if (block.type === 'basic.input') {
           ports.in.push({
-            name: utils.digestId(block.id),
+            name: pname,
             range: block.data.range ? block.data.range : ''
           });
         }
         else if (block.type === 'basic.output') {
           ports.out.push({
-            name: utils.digestId(block.id),
+            name: pname,
             range: block.data.range ? block.data.range : ''
           });
         }
@@ -233,34 +313,34 @@ angular.module('icestudio')
             graph.blocks.length >0 &&
             graph.wires.length>0){
 
-            for(lidx in graph.blocks){
-                lin=graph.blocks[lidx];
-                if( lin.type === 'basic.inputLabel' ){
-                   for(widx in graph.wires){
-                        vw=graph.wires[widx];
-                       if(vw.target.block === lin.id){
-                            if(typeof vwiresLut[lin.data.name] === 'undefined'){
-                                vwiresLut[lin.data.name]={source:[],target:[]};
-                            }
-                            twire=vw.source;
-                            twire.size=vw.size;
-                            vwiresLut[lin.data.name].source.push(twire);
-                       }
-                   }
+          for(lidx in graph.blocks){
+            lin=graph.blocks[lidx];
+            if( lin.type === 'basic.inputLabel' ){
+              for(widx in graph.wires){
+                vw=graph.wires[widx];
+                if(vw.target.block === lin.id){
+                  if(typeof vwiresLut[lin.data.name] === 'undefined'){
+                      vwiresLut[lin.data.name]={source:[],target:[]};
+                  }
+                  twire=vw.source;
+                  twire.size=vw.size;
+                  vwiresLut[lin.data.name].source.push(twire);
+                }
+              }
             }
             if( lin.type === 'basic.outputLabel' ){
-                   for(widx in graph.wires){
-                       vw=graph.wires[widx];
-                       if(vw.source.block === lin.id){
-                            if(typeof vwiresLut[lin.data.name] === 'undefined'){
-                                vwiresLut[lin.data.name]={source:[],target:[]};
-                            }
+              for(widx in graph.wires){
+                vw=graph.wires[widx];
+                if(vw.source.block === lin.id){
+                  if(typeof vwiresLut[lin.data.name] === 'undefined'){
+                      vwiresLut[lin.data.name]={source:[],target:[]};
+                  }
 
-                            twire=vw.target;
-                            twire.size=vw.size;
-                            vwiresLut[lin.data.name].target.push(twire);
-                       }
-                   }
+                  twire=vw.target;
+                  twire.size=vw.size;
+                  vwiresLut[lin.data.name].target.push(twire);
+                }
+              }
             }
           }//for lin
         }// if typeof....
@@ -319,7 +399,7 @@ angular.module('icestudio')
           var constantBlock = findBlock(wire.source.block, graph);
           var paramValue = utils.digestId(constantBlock.id);
           if (paramValue) {
-            connections.localparam.push('localparam p' + w + ' = ' + paramValue  + ';');
+            connections.localparam.push('localparam p' + w + ' = ' + project.nameList.paramNames[name][constantBlock.id] + ';');
           }
         }
         else {
@@ -332,7 +412,7 @@ angular.module('icestudio')
           var block = graph.blocks[i];
           if (block.type === 'basic.input') {
             if (wire.source.block === block.id) {
-              connections.assign.push('assign w' + w + ' = ' + utils.digestId(block.id) + ';');
+              connections.assign.push('assign w' + w + ' = ' + getPortName(name, block, i, project.nameList) + ';');
             }
           }
           else if (block.type === 'basic.output') {
@@ -342,7 +422,7 @@ angular.module('icestudio')
                 // connections.assign.push('assign ' + digestId(block.id) + ' = p' + w + ';');
               }
               else {
-                connections.assign.push('assign ' + utils.digestId(block.id) + ' = w' + w + ';');
+                connections.assign.push('assign ' + getPortName(name, block, i, project.nameList) + ' = w' + w + ';');
               }
             }
           }
@@ -418,12 +498,7 @@ angular.module('icestudio')
           // Header
 
           var instance;
-          if (block.type === 'basic.code') {
-            instance = getModuleName(name, block, b, nameList);
-          }
-          else {
-            instance = utils.digestId(block.type);
-          }
+          instance = getModuleName(name, block, b, nameList);
 
           //-- Parameters
 
@@ -435,7 +510,9 @@ angular.module('icestudio')
                  wire.source.port === 'memory-out')) {
               var paramName = wire.target.port;
               if (block.type !== 'basic.code') {
-                paramName = utils.digestId(paramName);
+                var moduleName = nameList.moduleNames[block.type];
+                paramName = nameList.paramNames[moduleName][paramName];
+                //paramName = utils.digestId(paramName);
               }
               var param = '';
               param += ' .' + paramName;
@@ -450,7 +527,7 @@ angular.module('icestudio')
 
           //-- Instance name
 
-          instance += ' ' +  utils.digestId(block.id);
+          instance += ' ' +  getInstanceName(name, block, b, nameList);
 
           //-- Ports
 
@@ -459,12 +536,12 @@ angular.module('icestudio')
           for (w in graph.wires) {
             wire = graph.wires[w];
             if (block.id === wire.source.block) {
-              connectPort(wire.source.port, portsNames, ports, block);
+              connectPort(wire.source.port, portsNames, ports, block, nameList);
             }
             if (block.id === wire.target.block) {
               if (wire.source.port !== 'constant-out' &&
                   wire.source.port !== 'memory-out') {
-                connectPort(wire.target.port, portsNames, ports, block);
+                connectPort(wire.target.port, portsNames, ports, block, nameList);
               }
             }
           }
@@ -477,10 +554,12 @@ angular.module('icestudio')
         }
       }
 
-      function connectPort(portName, portsNames, ports, block) {
+      function connectPort(portName, portsNames, ports, block, nameList) {
         if (portName) {
           if (block.type !== 'basic.code') {
-            portName = utils.digestId(portName);
+            var moduleName = nameList.moduleNames[block.type];
+            portName = nameList.portNames[moduleName][portName];
+            // portName = utils.digestId(portName);
           }
           if (portsNames.indexOf(portName) === -1) {
             portsNames.push(portName);
@@ -585,23 +664,16 @@ angular.module('icestudio')
         if (name) {
 
           // Setup module name dict ahead of compiling
-          if (name === 'main') {
+          if (!project.nameList) {
             project.nameList = nameList;
             nameList.moduleNames = new Array();
-          } else if (project.nameList) {
+            nameList.portNames = new Array();
+            nameList.paramNames = new Array();
+          } else {
             nameList = project.nameList;
           }
 
           // Build modules in prior to content to generate module names 
-
-          // Dependencies modules
-
-          for (var d in dependencies) {
-            dependencies[d].nameList = nameList;
-            codeModule += verilogCompiler(utils.digestId(d), dependencies[d]);
-            delete dependencies[d].nameList;
-          }
-
           // Code modules
 
           for (i in blocks) {
@@ -619,6 +691,21 @@ angular.module('icestudio')
               }
             }
           }
+
+          // Dependencies modules
+          // Load all module names in prior to generating codes
+          for (var d in dependencies) {
+            dependencies[d].nameList = nameList;
+            var mname = getDependencyModuleName(d, dependencies[d], nameList);
+            getPorts(mname, dependencies[d]);
+            getParams(mname, dependencies[d]);
+          }
+          for (var d in dependencies) {
+            var mname = getDependencyModuleName(d, dependencies[d], nameList);
+            codeModule += verilogCompiler(mname, dependencies[d]);
+            delete dependencies[d].nameList;
+          }
+          
 
           // Initialize input ports
 
@@ -679,8 +766,8 @@ angular.module('icestudio')
           }
 
 
-          var params = getParams(project);
-          var ports = getPorts(project);
+          var params = getParams(name, project);
+          var ports = getPorts(name, project);
           var content = getContent(name, project);
 
           // Initialize output pins
@@ -716,7 +803,7 @@ angular.module('icestudio')
 
           // release namelist
           if (name === 'main') {
-            delete opt.nameList;
+            delete project.nameList;
           }
         }
 
