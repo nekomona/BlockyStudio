@@ -1052,6 +1052,29 @@ angular.module('icestudio')
                                 hId = utils.dependencyID(dependencies[dep]);
                                 object.dependencies[hId] = dependencies[dep];
                                 hash[dep] = hId;
+
+                                // give new uuid to code blocks and memory blocks
+                                var lgraph = dependencies[dep].design.graph;
+                                for (var i in lgraph.blocks) {
+                                    var block = lgraph.blocks[i];
+                                    if (block.type === 'basic.code' || block.type === 'basic.memory') {
+                                        var newid = joint.util.uuid();
+                                        var w, wire;
+                                        for (w in lgraph.wires) {
+                                            wire = lgraph.wires[w];
+                                            if (block.id === wire.source.block) {
+                                                wire.source.block = newid;
+                                            }
+                                            if (block.id === wire.target.block) {
+                                                wire.target.block = newid;
+                                            } 
+                                        }
+                                        block.id = newid;
+                                    }
+                                    else if (block.type === 'basic.info') {
+                                        block.id = joint.util.uuid();
+                                    }
+                                }
                             }
 
                             //reassign dependencies
