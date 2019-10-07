@@ -12,7 +12,7 @@ angular.module('icestudio')
       switch(target) {
         case 'verilog':
           content += header('//', opt);
-          content += '`default_nettype none\n';
+          // content += '`default_nettype none\n';
           content += verilogCompiler('main', project, opt);
           files.push({
             name: 'main.v',
@@ -299,6 +299,8 @@ angular.module('icestudio')
         wire: [],
         assign: []
       };
+
+      var wireSource = [];
         // We need to rearrange internal design specification to compile it
         // Convert virtual labels to wire and some stuff .
 
@@ -413,6 +415,7 @@ angular.module('icestudio')
           if (block.type === 'basic.input') {
             if (wire.source.block === block.id) {
               connections.assign.push('assign w' + w + ' = ' + getPortName(name, block, i, project.nameList) + ';');
+              wireSource[w] = getPortName(name, block, i, project.nameList);
             }
           }
           else if (block.type === 'basic.output') {
@@ -423,6 +426,7 @@ angular.module('icestudio')
               }
               else {
                 connections.assign.push('assign ' + getPortName(name, block, i, project.nameList) + ' = w' + w + ';');
+                wireSource[getPortName(name, block, i, project.nameList)] = 'w' + w;
               }
             }
           }
@@ -444,8 +448,10 @@ angular.module('icestudio')
           if (gwi.source.block === gwj.source.block &&
               gwi.source.port === gwj.source.port &&
               gwi.source.port !== 'constant-out' &&
-              gwi.source.port !== 'memory-out') {
+              gwi.source.port !== 'memory-out' &&
+              !wireSource[i]) {
             content.push('assign w' + i + ' = w' + j + ';');
+            wireSource[i] = 'w' + j;
           }
         }
       }
