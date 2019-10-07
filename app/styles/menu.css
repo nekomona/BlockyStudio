@@ -107,6 +107,11 @@
   margin-right: 10px;
 }
 
+.dropdown-submenu-long > .dropdown-menu {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
 .navbar-default .navbar-nav>li>a {
   color: #333 !important;
 }

@@ -183,24 +183,12 @@
           <li uib-dropdown ng-mouseover="showMenu('select')" ng-mouseleave="hideMenu()" ng-click="fixMenu('select')" is-open="status.select">
             <a href uib-dropdown-toggle>{{ 'Select' | translate }}<span class="caret"></span></a>
             <ul uib-dropdown-menu>
-              <li class="dropdown-submenu" uib-dropdown>
+              <li class="dropdown-submenu dropdown-submenu-long" uib-dropdown>
                 <a href uib-dropdown-toggle>{{ 'Board' | translate }}</a>
                 <ul uib-dropdown-menu>
-                   <li><a><b>HX1K</b></a></li>
-                   <li ng-repeat="board in common.boards">
-                     <menuboard type="'HX1K'" board="board"></menuboard>
-                   </li>
-                   <li><a><b>HX8K</b></a></li>
-                   <li ng-repeat="board in common.boards">
-                     <menuboard type="'HX8K'" board="board"></menuboard>
-                   </li>
-                   <li><a><b>LP8K</b></a></li>
-                   <li ng-repeat="board in common.boards">
-                     <menuboard type="'LP8K'" board="board"></menuboard>
-                   </li>
-                   <li><a><b>UP5K</b></a></li>
-                   <li ng-repeat="board in common.boards">
-                     <menuboard type="'UP5K'" board="board"></menuboard>
+                   <li ng-repeat-start='platform in common.platforms'><a><b>{{platform}}</b></a></li>
+                   <li ng-repeat-end ng-repeat="board in common.boards">
+                     <menuboard type="platform" board="board"></menuboard> 
                    </li>
                  </ul>
               </li>

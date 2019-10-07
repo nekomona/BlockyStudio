@@ -9,9 +9,11 @@ angular.module('icestudio')
 
     this.loadBoards = function() {
       var boards = [];
+      var platforms = [];
       var path = nodePath.join('resources', 'boards');
       var menu = nodeFs.readFileSync(nodePath.join(path, 'menu.json'));
       JSON.parse(menu).forEach(function(section) {
+        platforms.push(section.type);
         section.boards.forEach(function(name) {
           var contentPath = nodePath.join(path, name);
           if (nodeFs.statSync(contentPath).isDirectory()) {
@@ -29,6 +31,7 @@ angular.module('icestudio')
         });
       });
       common.boards = boards;
+      common.platforms = platforms;
     };
 
     function readJSONFile(filepath, filename) {

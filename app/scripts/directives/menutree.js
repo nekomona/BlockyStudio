@@ -29,7 +29,7 @@ angular.module('icestudio')
         right: '=',
         callback: '&'
       },
-      template: '<li ng-class="child.children ? (right ? \'dropdown-submenu-right\' : \'dropdown-submenu\') : \'\'" uib-dropdown>' +
+      template: '<li ng-class="child.children ? ((right ? \'dropdown-submenu-right\' : \'dropdown-submenu\') + (child.children.length > 10 ? \' dropdown-submenu-long\':\'\')) : \'\'" uib-dropdown>' +
                   '<a href ng-click="click(child.path)" ng-if="!child.children">{{ child.name | translate }}</a>' +
                   '<a href uib-dropdown-toggle ng-if="child.children">{{ child.name | translate }}</a>' +
                 '</li>',
