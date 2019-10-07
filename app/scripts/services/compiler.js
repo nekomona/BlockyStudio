@@ -53,11 +53,12 @@ angular.module('icestudio')
       return files;
     };
 
-    function assocIncludes(arr, val) {
+    function assocIncludes(arr, val, normkey) {
       for (var key in arr) {
-          if(arr[key] === val) return true;
+        if (normkey && normkey === key) continue;
+        if (arr[key] === val) return key;
       }
-      return false;
+      return null;
     }
 
     function getDependencyModuleName(d, project, nameList) {
@@ -65,7 +66,7 @@ angular.module('icestudio')
       var genname = '';
       if (project.package.name) {
         genname = project.package.name.replace(' ', '_');
-        if(assocIncludes(moduleNames, genname)) {
+        if(assocIncludes(moduleNames, genname, d)) {
           genname += '_' + utils.digestId(d);
         }
       } else {
@@ -88,7 +89,7 @@ angular.module('icestudio')
         if (block.type === 'basic.code') {
           if (block.data.name) {
             genname = name + '_' + block.data.name;
-            if (assocIncludes(moduleNames, genname)) {
+            if (assocIncludes(moduleNames, genname, block.id)) {
               genname = name + '_code_' + block.data.name + i.toString();
             }
           } else {
@@ -108,7 +109,7 @@ angular.module('icestudio')
       if (moduleNames[block.id]) {
         return 'u_' + moduleNames[block.id];
       } else if (moduleNames[block.type]) {
-        return 'u_' + moduleNames[block.type] + i.toString();
+        return 'u_' + moduleNames[block.type] + '_' + i.toString();
       } else {
         return utils.digestId(block.id);
       }
@@ -127,7 +128,7 @@ angular.module('icestudio')
         var nname = '';
         if (block.data.name) {
           nname = block.data.name;
-          if(assocIncludes(portNames[name], nname)) {
+          if(assocIncludes(portNames[name], nname, block.id)) {
             nname += '_' + i.toString();
           }
         } else if(block.type === 'basic.input') {
@@ -161,7 +162,7 @@ angular.module('icestudio')
         var nname = '';
         if (block.data.name) {
           nname = block.data.name;
-          if(assocIncludes(paramNames[name], nname)) {
+          if(assocIncludes(paramNames[name], nname, block.id)) {
             nname += '_' + i.toString();
           }
         } else {
