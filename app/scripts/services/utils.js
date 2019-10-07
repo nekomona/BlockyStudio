@@ -796,6 +796,10 @@ angular.module('icestudio')
 
     this.saveDialog = function (inputID, ext, callback) {
       var chooser = $(inputID);
+      var saveaspath = chooser[0].nwsaveas;
+      chooser[0].accept = ext;
+      chooser[0].nwsaveas = saveaspath.substring(0, saveaspath.lastIndexOf('.')) + ext;
+
       chooser.unbind('change');
       chooser.change(function (/*evt*/) {
         var filepath = $(this).val();

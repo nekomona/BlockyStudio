@@ -10,7 +10,7 @@
     <input id="input-add-as-block" type="file" accept=".ice,.iceb" class="hidden" multiple/>
 
     <input id="input-export-verilog" type="file" accept=".v" class="hidden" nwsaveas="{{ workingdir + project.name }}.v"/>
-    <input id="input-export-pcf" type="file" accept=".pcf" class="hidden" nwsaveas="{{ workingdir + project.name }}.pcf"/>
+    <input id="input-export-ioconstr" type="file" accept=".pcf" class="hidden" nwsaveas="{{ workingdir + project.name }}.pcf"/>
     <input id="input-export-testbench" type="file" accept=".v" class="hidden" nwsaveas="{{ workingdir + project.name }}_tb.v"/>
     <input id="input-export-gtkwave" type="file" accept=".gtkw" class="hidden" nwsaveas="{{ workingdir + project.name }}_tb.gtkw"/>
     <input id="input-export-blif" type="file" accept=".blif" class="hidden" nwsaveas="{{ workingdir + project.name }}.blif"/>
@@ -60,7 +60,7 @@
                     <a href ng-click="exportVerilog()">{{ 'Verilog' }}</a>
                   </li>
                   <li>
-                    <a href ng-click="exportPCF()">{{ 'PCF' }}</a>
+                    <a href ng-click="exportIOConstraint()">{{ 'IO Constraint' }}</a>
                   </li>
                   <li>
                     <a href ng-click="exportTestbench()">{{ 'Testbench' | translate }}</a>

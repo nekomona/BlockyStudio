@@ -279,9 +279,14 @@ angular.module('icestudio')
       exportFromCompiler('verilog', 'Verilog', '.v');
     };
 
-    $scope.exportPCF = function () {
-      exportFromCompiler('pcf', 'PCF', '.pcf');
-    };
+    $scope.exportIOConstraint = function() {
+      if(common.selectedBoard.info.constraint) {
+        var constFile = common.selectedBoard.info.constraint;
+        exportFromCompiler('ioconstr', constFile, '.' + constFile.toLowerCase());
+      } else {
+        exportFromCompiler('ioconstr', 'PCF', '.pcf');
+      }
+    }
 
     $scope.exportTestbench = function () {
       exportFromCompiler('testbench', 'Testbench', '.v');

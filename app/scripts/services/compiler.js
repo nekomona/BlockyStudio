@@ -19,11 +19,12 @@ angular.module('icestudio')
             content: content
           });
           break;
-        case 'pcf':
+        case 'ioconstr':
+          var ext = common.selectedBoard.info.constraint || 'PCF';
           content += header('#', opt);
-          content += pcfCompiler(project, opt);
+          content += ioConstraintCompiler(project, opt);
           files.push({
-            name: 'main.pcf',
+            name: 'main.' + ext.toLowerCase(),
             content: content
           });
           break;
@@ -819,6 +820,16 @@ angular.module('icestudio')
       return code;
     }
 
+    function ioConstraintCompiler(project, opt) {
+      var constraintType = common.selectedBoard.info.constraint || 'PCF';
+      switch (constraintType) {
+        case 'PCF':
+          return pcfCompiler(project, opt);
+        case 'ADC':
+          return adcCompiler(project, opt);
+      }
+    }
+
     function pcfCompiler(project, opt) {
       var i, j, block, pin, value, code = '';
       var blocks = project.design.graph.blocks;
@@ -906,7 +917,102 @@ angular.module('icestudio')
 
       return code;
     }
+    function adcCompiler(project, opt) {
+      var i, j, block, pin, value, code = '';
+      var blocks = project.design.graph.blocks;
+      opt = opt || {};
 
+      var nameList = {};
+      nameList.portNames = new Array();
+
+      for (i in blocks) {
+        block = blocks[i];
+        if (block.type === 'basic.input' ||
+            block.type === 'basic.output') {
+
+          if (block.data.pins.length > 1) {
+            for (var p in block.data.pins) {
+              pin = block.data.pins[p];
+              value = block.data.virtual ? '' : pin.value;
+              code += 'set_pin_assignment {';
+              code += getPortName('main', block, i, nameList);
+              code += '[' + pin.index + ']';
+              code += '} { LOCATION = '
+              code += value;
+              code += '; IOSTANDARD = LVCMOS33;  }'
+              code += '\n';
+            }
+          }
+          else if (block.data.pins.length > 0) {
+            pin = block.data.pins[0];
+            value = block.data.virtual ? '' : pin.value;
+            code += 'set_pin_assignment {';
+            code += getPortName('main', block, i, nameList);
+            code += '} { LOCATION = '
+            code += value;
+            code += '; IOSTANDARD = LVCMOS33;  }'
+            code += '\n';
+          }
+        }
+      }
+
+      if (opt.boardRules) {
+        // Declare init input ports
+
+        var used = [];
+        var initPorts = opt.initPorts || getInitPorts(project);
+        for (i in initPorts) {
+          var initPort = initPorts[i];
+          if (used.indexOf(initPort.pin) !== -1) {
+            break;
+          }
+          used.push(initPort.pin);
+
+          // Find existing input block with the initPort value
+          var found = false;
+          for (j in blocks) {
+            block = blocks[j];
+            if (block.type === 'basic.input' &&
+            !block.data.range &&
+            !block.data.virtual &&
+            initPort.pin === block.data.pins[0].value) {
+              found = true;
+              used.push(initPort.pin);
+              break;
+            }
+          }
+
+          if (!found) {
+            code += 'set_pin_assignment {';
+            code += initPorts[i].name;
+            code += '} { LOCATION = '
+            code += initPorts[i].pin;
+            code += '; IOSTANDARD = LVCMOS33;  }'
+            code += '\n';
+          }
+        }
+
+        // Declare init output pins
+
+        var initPins = opt.initPins || getInitPins(project);
+        if (initPins.length > 1) {
+          for (i in initPins) {
+            code += 'set_pin_assignment {vinit[' + i + ']} { LOCATION = ';
+            code += initPins[i].pin;
+            code += '; IOSTANDARD = LVCMOS33;  }'
+            code += '\n';
+          }
+        }
+        else if (initPins.length > 0) {
+          code += 'set_pin_assignment {vinit} { LOCATION = ';
+          code += initPins[0].pin;
+          code += '; IOSTANDARD = LVCMOS33;  }'
+          code += '\n';
+        }
+      }
+
+      return code;
+    }
     function listCompiler(project) {
       var i;
       var listFiles = [];

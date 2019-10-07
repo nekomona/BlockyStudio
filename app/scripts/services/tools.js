@@ -156,7 +156,7 @@ angular.module('icestudio')
           //only verification
         } else {
           // PCF file
-          var pcfFile = compiler.generate('pcf', project.get(), opt)[0];
+          var pcfFile = compiler.generate('ioconstr', project.get(), opt)[0];
           nodeFs.writeFileSync(nodePath.join(common.BUILD_DIR, pcfFile.name), pcfFile.content, 'utf8');
         }
         // List files
