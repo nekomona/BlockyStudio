@@ -53,14 +53,25 @@ angular.module('icestudio')
       return files;
     };
 
+    function assocIncludes(arr, val) {
+      for (var key in arr) {
+          if(arr[key] === val) return true;
+      }
+      return false;
+    }
+
     function getDependencyModuleName(d, project, nameList) {
+      var moduleNames = nameList.moduleNames;
       var genname = '';
       if (project.package.name) {
-        genname = project.package.name;
+        genname = project.package.name.replace(' ', '_');
+        if(assocIncludes(moduleNames, genname)) {
+          genname += '_' + utils.digestId(d);
+        }
       } else {
         genname = utils.digestId(d);
       }
-      nameList.moduleNames[d] = project.package.name;
+      moduleNames[d] = genname;
       return genname;
     }
 
@@ -77,7 +88,7 @@ angular.module('icestudio')
         if (block.type === 'basic.code') {
           if (block.data.name) {
             genname = name + '_' + block.data.name;
-            if (moduleNames.indexOf(genname) > 0) {
+            if (assocIncludes(moduleNames, genname)) {
               genname = name + '_code_' + block.data.name + i.toString();
             }
           } else {
@@ -116,6 +127,9 @@ angular.module('icestudio')
         var nname = '';
         if (block.data.name) {
           nname = block.data.name;
+          if(assocIncludes(portNames[name], nname)) {
+            nname += '_' + i.toString();
+          }
         } else if(block.type === 'basic.input') {
           if (block.data.clock === true) {
             nname = 'clk_in_' + i.toString();
@@ -147,6 +161,9 @@ angular.module('icestudio')
         var nname = '';
         if (block.data.name) {
           nname = block.data.name;
+          if(assocIncludes(paramNames[name], nname)) {
+            nname += '_' + i.toString();
+          }
         } else {
           nname = 'param_' + i.toString();
         }
@@ -407,7 +424,7 @@ angular.module('icestudio')
         }
         else {
           // Wires
-          var range = wire.size ? ' [0:' + (wire.size-1) +'] ' : ' ';
+          var range = wire.size ? ' [' + (wire.size-1) +':0] ' : ' ';
           connections.wire.push('wire' + range + 'w' + w + ';');
         }
         // Assignations
@@ -788,13 +805,15 @@ angular.module('icestudio')
               // Declare m port
               ports.out.push({
                 name: 'vinit',
-                range: '[0:' + (n-1) + ']'
+                range: '[' + (n-1) + ':0]'
               });
               // Generate port value
-              var value = n.toString() + '\'b';
+              var value = '';
               for (i in initPins) {
-                value += initPins[i].bit;
+                value = initPins[i].bit + value;
               }
+              value = n.toString() + '\'b' + value;
+              
               // Assign m port
               content += '\nassign vinit = ' + value + ';';
             }
