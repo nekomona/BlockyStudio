@@ -24,7 +24,7 @@ angular.module('icestudio')
           content += header('#', opt);
           content += ioConstraintCompiler(project, opt);
           files.push({
-            name: 'main.' + ext.toLowerCase(),
+            name: 'io_cst.' + ext.toLowerCase(),
             content: content
           });
           break;

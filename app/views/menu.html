@@ -16,6 +16,7 @@
     <input id="input-export-blif" type="file" accept=".blif" class="hidden" nwsaveas="{{ workingdir + project.name }}.blif"/>
     <input id="input-export-asc" type="file" accept=".asc" class="hidden" nwsaveas="{{ workingdir + project.name }}.asc"/>
     <input id="input-export-bin" type="file" accept=".bin" class="hidden" nwsaveas="{{ workingdir + project.name }}.bin"/>
+    <input id="input-export-project" type="file" class="hidden" nwsaveas="{{ workingdir + project.name }}.prj"/>
 
     <input id="input-add-collection" type="file" accept=".zip" class="hidden" multiple/>
 
@@ -69,6 +70,9 @@
                     <a href ng-click="exportGTKwave()">{{ 'GTKWave' }}</a>
                   </li>
                   <li class="divider"></li>
+                  <li>
+                    <a href ng-click="exportProject()">{{ 'Project' }}</a>
+                  </li>
                   <li>
                     <a href ng-click="exportBLIF()">{{ 'BLIF' }}</a>
                   </li>

@@ -296,6 +296,10 @@ angular.module('icestudio')
       exportFromCompiler('gtkwave', 'GTKWave', '.gtkw');
     };
 
+    $scope.exportProject = function () {
+      exportFromPackager('anlogic', 'AL', '.al');
+    };
+
     $scope.exportBLIF = function () {
       exportFromBuilder('blif', 'BLIF', '.blif');
     };
@@ -327,6 +331,30 @@ angular.module('icestudio')
           });
         })
         .catch(function () { });
+    }
+
+    function exportFromPackager(id, name, ext) {
+      checkGraph()
+      .then(function () {
+        utils.saveDialog('#input-export-project', ext, function (filepath) {
+          var projpath = filepath.replace('/', '\\');
+          var projname = projpath.substr(projpath.lastIndexOf('\\') + 1);
+          projpath = projpath.substr(0, projpath.lastIndexOf('\\')) + '\\';
+
+          var bkBUILD_DIR = common.BUILD_DIR;
+          common.BUILD_DIR = projpath;
+
+          tools.exportProject(projname)
+            .then(function () {
+              common.BUILD_DIR = bkBUILD_DIR;
+              updateWorkingdir(filepath);
+            })
+            .catch(function () {
+              common.BUILD_DIR = bkBUILD_DIR;
+            });
+
+        });
+      });
     }
 
     function exportFromBuilder(id, name, ext) {

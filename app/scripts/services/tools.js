@@ -232,6 +232,137 @@ angular.module('icestudio')
       });
     }
 
+    this.exportProject = exportProject;
+
+    function exportProject(projectName) {
+
+      return new Promise(function (resolve) {
+
+        if (!taskRunning) {
+          taskRunning = true;
+
+          if (infoAlert) {
+            infoAlert.dismiss(false);
+          }
+
+          if (resultAlert) {
+            resultAlert.dismiss(false);
+          }
+          graph.resetCodeErrors()
+          .then(function () {
+            utils.beginBlockingTask();
+            startAlert = alertify.message('Exporting Project', 100000);
+            return generateCode(['pack']);
+          })
+          .then(function (output) {
+            return syncResources(output.code, output.internalResources);
+          })
+          .then(function () {
+            // TODO:: Generate project file
+            return writeProject(projectName);
+          })
+          .then(function () {
+            // Success
+            resultAlert = alertify.success(gettextCatalog.getString('Project Exported'));
+            utils.endBlockingTask();
+            restoreTask();
+            resolve();
+          })
+          .catch(function (/* e */) {
+            // Error
+            utils.endBlockingTask();
+            restoreTask();
+          });
+        }
+      });
+    }
+
+    function writeProject(projectName) {
+      return new Promise(function (resolve) {
+        var projectNameNoExt = projectName.substr(0, projectName.lastIndexOf('.'));
+        var projectFile = compileProject(projectNameNoExt);
+        nodeFs.writeFileSync(nodePath.join(common.BUILD_DIR, projectName), projectFile, 'utf8');
+        resolve();
+      });
+    }
+
+    function compileProject(project) {
+      var projectType = common.selectedBoard.info.project || 'AL';
+      switch (projectType) {
+        case 'AL':
+          return compileAlProject(project);
+      }
+    }
+
+    function compileAlProject(project) {
+      var result = '';
+      var verilogFiles = [];
+      var verilogHeaders = [];
+      var vhdlFiles = [];
+
+      result += '<?xml version="1.0" encoding="UTF-8"?>\n';
+      result += '<Project>\n'
+      result += '    <Name>' + project + '</Name>\n';
+      result += '    <HardWare>\n';
+      result += '        <Family>' + common.selectedBoard.info.family + '</Family>\n';
+      result += '        <Device>' + common.selectedBoard.info.device + '</Device>\n';
+      result += '    </HardWare>\n';
+      result += '    <Source_Files>\n';
+
+      // Build source list
+      for (var i in resources) {
+        var fname = resources[i];
+        if (fname.endsWith('.v')) {
+          verilogFiles.push(fname);
+        } else if (fname.endsWith('.vh')) {
+          verilogHeaders.push(fname);
+        } else if (fname.endsWith('.vhd') || fname.endsWith('.vhdl')) {
+          vhdlFiles.push(fname);
+        }
+      }
+      verilogFiles.push('main.v');
+
+      // Verilog
+      // Always true, left for checking
+      if (verilogFiles.length > 0) {
+        result += '        <Verilog>\n';
+          for (var i in verilogFiles) {
+            result += '            <File>' + verilogFiles[i] + '</File>\n';
+          }
+        result += '        </Verilog>\n';
+      }
+
+      // Verilog Header
+      if (verilogHeaders.length > 0) {
+        result += '        <Header>\n';
+          for (var i in verilogHeaders) {
+            result += '            <File>' + verilogHeaders[i] + '</File>\n';
+          }
+        result += '        </Header>\n';
+      }
+
+      // VHDL
+      if (vhdlFiles.length > 0) {
+        result += '        <VHDL>\n';
+          for (var i in vhdlFiles) {
+            result += '            <File>' + vhdlFiles[i] + '</File>\n';
+          }
+        result += '        </VHDL>\n';
+      }
+      // Hardcoded ADC filename
+      result += '        <ADC_FILE>io_cst.adc</ADC_FILE>\n';
+      // No timing constraint yet
+      result += '        <SDC_FILE/>\n';
+      // No ChipWatcher added
+      result += '        <CWC_FILE/>\n';
+      result += '    </Source_Files>\n';
+      
+      result += '</Project>\n'
+
+      // Leaves everything else for TD to add after HDL reading
+      return result;
+    }
+
     this.checkToolchain = checkToolchain;
 
     function checkToolchain(callback) {
