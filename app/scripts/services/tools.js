@@ -262,8 +262,13 @@ angular.module('icestudio')
             return writeProject(projectName);
           })
           .then(function () {
+            var prjpath = common.BUILD_DIR;
             // Success
-            resultAlert = alertify.success(gettextCatalog.getString('Project Exported'));
+            resultAlert = alertify.success(gettextCatalog.getString('Project Exported\nClick To Open Project'), 20, function (isClicked) {
+              if (isClicked) {
+                openProject(prjpath, projectName);
+              }
+            });
             utils.endBlockingTask();
             restoreTask();
             resolve();
@@ -275,6 +280,19 @@ angular.module('icestudio')
           });
         }
       });
+    }
+
+    function openProject(pathName, projectName) {
+      var projectType = common.selectedBoard.info.project || 'AL';
+      switch (projectType) {
+        case 'AL':
+          nodeChildProcess.spawn('td', [projectName], {
+                                                cwd: pathName,
+                                                detached: true,
+                                                stdio: [ 'ignore', 'ignore', 'ignore']
+                                              });
+          break;
+      }
     }
 
     function writeProject(projectName) {
