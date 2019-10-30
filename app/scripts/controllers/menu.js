@@ -275,6 +275,15 @@ angular.module('icestudio')
       });
     };
 
+    $scope.addRTL = function () {
+      utils.openDialog('#input-add-rtl', '.v', function (filepaths) {
+        filepaths = filepaths.split(';');
+        for (var i in filepaths) {
+          project.addRTLFile(filepaths[i]);
+        }
+      });
+    }
+
     $scope.exportVerilog = function () {
       exportFromCompiler('verilog', 'Verilog', '.v');
     };

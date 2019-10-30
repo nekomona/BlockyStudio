@@ -49,6 +49,7 @@ angular.module('icestudio')
     this.LOCALE_DIR = nodePath.join('resources', 'locale');
     this.SAMPLE_DIR = nodePath.join('resources', 'sample');
     this.DEFAULT_COLLECTION_DIR = nodePath.resolve(nodePath.join('resources', 'collection'));
+    this.SVMODULE_PATH = nodePath.join('resources', 'svmodule.py');
 
     this.BASE_DIR = process.env.HOME || process.env.USERPROFILE;
     this.ICESTUDIO_DIR = safeDir(nodePath.join(this.BASE_DIR, '.icestudio'), this);

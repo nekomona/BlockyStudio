@@ -114,6 +114,25 @@ angular.module('icestudio')
       );
     };
 
+    this.executeLongStdoutCommand = function (command, callback) {
+      var proc = nodeChildProcess.spawn(command[0], command.slice(1));
+
+      var reslist = [];
+      proc.stdout.setEncoding('utf8');
+      
+      proc.stdout.on("data", function(chunk) {
+        reslist.push(chunk);
+      });
+
+      proc.stdout.on("end", function() {
+        var nres = '';
+        for (var i in reslist) {
+          nres += reslist[i];
+        }
+        callback(nres);
+      });
+    };
+
     this.createVirtualenv = function (callback) {
       if (!nodeFs.existsSync(common.ICESTUDIO_DIR)) {
         nodeFs.mkdirSync(common.ICESTUDIO_DIR);
@@ -263,7 +282,7 @@ angular.module('icestudio')
 
     this.readFile = function (filepath) {
       return new Promise(function (resolve, reject) {
-        if (nodeFs.existsSync(common.PROFILE_PATH)) {
+        if (nodeFs.existsSync(filepath)) {
           nodeFs.readFile(filepath,
             function (err, content) {
               if (err) {
@@ -304,6 +323,30 @@ angular.module('icestudio')
           });
       });
     };
+
+    this.readRTLFile = function (filepath) {
+      var self = this;
+      return new Promise(function (resolve, reject) {
+        if (nodeFs.existsSync(filepath)) {
+          var command = [self.getPythonExecutable(),
+          common.SVMODULE_PATH,
+          filepath];
+
+          self.executeLongStdoutCommand(command, function (content) {
+            var data = isJSON(content);
+            if (data) {
+              resolve(data);
+            }
+            else {
+              reject();
+            }
+          });
+        }
+        else {
+          resolve({});
+        }
+      });
+    }
 
     /*function compressJSON(data, callback) {
       var content = JSON.stringify(data);
