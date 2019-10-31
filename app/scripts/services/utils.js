@@ -114,22 +114,23 @@ angular.module('icestudio')
       );
     };
 
-    this.executeLongStdoutCommand = function (command, callback) {
+    this.executeLongStdioCommand = function (command, stdin, callback) {
       var proc = nodeChildProcess.spawn(command[0], command.slice(1));
 
       var reslist = [];
       proc.stdout.setEncoding('utf8');
+
+      if (stdin) {
+        proc.stdin.write(stdin);
+        proc.stdin.end();
+      }
       
       proc.stdout.on("data", function(chunk) {
         reslist.push(chunk);
       });
 
       proc.stdout.on("end", function() {
-        var nres = '';
-        for (var i in reslist) {
-          nres += reslist[i];
-        }
-        callback(nres);
+        callback(reslist.join(''));
       });
     };
 
@@ -332,7 +333,7 @@ angular.module('icestudio')
           common.SVMODULE_PATH,
           filepath];
 
-          self.executeLongStdoutCommand(command, function (content) {
+          self.executeLongStdioCommand(command, '', function (content) {
             var data = isJSON(content);
             if (data) {
               resolve(data);
@@ -1239,6 +1240,97 @@ angular.module('icestudio')
     this.openUrlExternalBrowser = function (url) {
 
       gui.Shell.openExternal(url);
+    };
+
+    this.evalInContext = function (js, context) {
+      return function () {
+        return eval(js);
+      }.call(context)
+    };
+
+    this.evalParameter = function (paramList, context) {
+      var self = this;
+      
+      // Create map for param inclusion
+      context = context | {};
+
+      var evalObject = {
+        "paramList": paramList,
+        "context": context
+      };
+
+      return new Promise(function (resolve, reject) {
+        var command = [self.getPythonExecutable(),
+                        common.PARAMEVAL_PATH];
+
+        self.executeLongStdioCommand(command, JSON.stringify(evalObject), function (content) {
+          var data = isJSON(content);
+          if (data) {
+            resolve(data);
+          }
+          else {
+            reject();
+          }
+        });
+      });
+
+      /*
+      var retList = this.clone(paramList);
+      var hashFind = [];
+
+      context = context | {};
+    
+      // Build hashlist for finding parameter by name
+      for (var i in retList) {
+        var iitem  = retList[i];
+        hashFind[iitem.name] = iitem;
+        iitem.refCount = 0;
+        iitem.outEdge = [];
+      }
+
+      // Replace value string for eval and add connections
+      for (var i in retList) {
+        var iitem = retList[i];
+        for (var nstr in hashFind) {
+          if (iitem.value.search(nstr) !== -1) {
+            // Parameter reference found
+            iitem.refCount += 1;
+            iitem.value = iitem.value.replace(
+              new RegExp(["([^\\w]|^)(", nstr, ")(?=[^\\w]|$)"].join(''), "g"),
+              function (match, p1) {
+                return [p1, "(this.", nstr, ")"].join('');
+            });
+            hashFind[nstr].outEdge.push(iitem);
+          }
+        }
+      }
+
+      // BFS to solve all parameters
+      var bfsQueue = [];
+      for (var i in retList) {
+        var iitem = retList[i];
+        if (iitem.refCount == 0) {
+          bfsQueue.push(iitem);
+        }
+      }
+
+      while (bfsQueue.length > 0) {
+        var cPara = bfsQueue.shift();
+        cPara.solveValue = this.evalInContext("this." + cPara.name + "=" + cPara.value, context);
+        
+        for (var i in cPara.outEdge) {
+          var oitem = cPara.outEdge[i];
+          oitem.refCount -= 1;
+          if (oitem.refCount == 0) {
+            bfsQueue.push(oitem);
+          }
+        }
+      }
+      */
+    };
+
+    this.evalPortSize = function (portDesc, paramList, context) {
+
     };
 
   });

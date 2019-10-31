@@ -416,6 +416,26 @@ angular.module('icestudio')
       graph.setCells(cells);
     }
 
+    this.solveProject = function (proj) {
+      var blocks = proj.design.graph.blocks;
+      var paramList = [];
+
+      for (var b in blocks) {
+        var block = blocks[b];
+        if (block.type === 'basic.constant') {
+          paramList.push({
+            name: block.data.name,
+            value: block.data.value
+          });
+        }
+      }
+
+      utils.evalParameter(paramList)
+        .then(function (rescontext) {
+          console.log(rescontext);
+      });
+    }
+
     this.addBlockFile = function (filepath, notification) {
       var self = this;
       utils.readFile(filepath)
@@ -547,17 +567,19 @@ angular.module('icestudio')
             // Parameters
             var HBlocksSize = parameterCount * 15 * gsize;
             // + Padding
-            var HCodeSize = HBlocksSize + 0;
-            // + Wiring + I/O
+            var HCodeSize = Math.max(HBlocksSize + 0, 360);
+
             var HGraphSize = HCodeSize;
             if (portCount > 0) {
+              // + Wiring + I/O
               HGraphSize += (2+4) * 15 * gsize;
             }
 
             // Ports
             var VBlocksSize = portCount * 10 * gsize;
             // + Padding
-            var VCodeSize = VBlocksSize + 0;
+            var VCodeSize = Math.max(VBlocksSize + 0, 240);
+
             var VGraphSize = VCodeSize;
             if (parameterCount > 0) {
               // + Wiring + Parameter
@@ -634,10 +656,14 @@ angular.module('icestudio')
             var vStepI = 10*gsize;
             if (inputCount > 1) {
               vStepI += (VBlocksSize - 10*gsize*inputCount) / (inputCount-1);
+            } else if(inputCount == 1) {
+              vPositionI.y = -10*gsize/2;
             }
             var vStepO = 10*gsize;
             if (outputCount > 1) {
               vStepO += (VBlocksSize - 10*gsize*outputCount) / (outputCount-1)
+            } else if(outputCount == 1) {
+              vPositionO.y = -10*gsize/2;
             }
             for (var i in moduleObj.port) {
               var portObj = moduleObj.port[i];
@@ -684,9 +710,18 @@ angular.module('icestudio')
                 // var wsize = utils.evalRange(portObj.packed, env)
                 // To eval
                 var wsize = 1
+                if (portObj.packed.match(/[^0-9\[\]:]/)) {
+                  newPortPort.dynamic = true;
+                  newPortBlock.data.dynamic = true;
+                  newPortWire.dynamic = true;
+                } else {
+                  var portnum = portObj.packed.substr(1, portObj.packed.length-2).split(':');
+                  wsize = Math.abs(portnum[0] - portnum[1]) + 1;
+                }
                 newPortPort.range = portObj.packed;
                 newPortPort.size = wsize;
-                newPortBlock.range = portObj.packed;
+                newPortBlock.data.range = portObj.packed;
+                newPortBlock.data.size = wsize;
                 newPortWire.size = wsize;
               }
               if (portObj.direction === 'input') {
@@ -700,6 +735,8 @@ angular.module('icestudio')
             // Finishing dependency project
             moduleProj.design.graph.blocks.push(cblock);
             
+            self.solveProject(moduleProj);
+
             // Add block to project
             self.addBlock(moduleProj);
             alertify.success(gettextCatalog.getString('Block {{name}} imported', { name: utils.bold(blockName) }));

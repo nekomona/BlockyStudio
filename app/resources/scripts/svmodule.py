@@ -348,7 +348,7 @@ class Parser:
         self.portsList = self.parsePortsList()
 
         # process port type in content
-        c_para = re.findall(r'parameter\s*(integer|logic|bit)?\s*(\[.*?:.*?])?\s*([^;]+?);', modcont)
+        c_para = re.findall(r'(?:\s|^)parameter\s*(integer|logic|bit)?\s*(\[.*?:.*?])?\s*([^;]+?);', modcont)
 
         for item in c_para:
             paratype = item[0]
@@ -362,7 +362,7 @@ class Parser:
                                  'packed':   parasize})
 
                 
-        c_para = re.findall(r'output\s*(wire|reg)?\s*(\[.*?:.*?])?\s*([^;]+?);', modcont)
+        c_para = re.findall(r'(?:\s|^)output\s*(wire|reg)?\s*(\[.*?:.*?])?\s*([^;]+?);', modcont)
 
         for item in c_para:
             paratype = item[0]
@@ -377,7 +377,7 @@ class Parser:
                                  'packed':    parasize})
 
                 
-        c_para = re.findall(r'input\s*(wire)?\s*(\[.*?:.*?])?\s*([^;]+?);', modcont)
+        c_para = re.findall(r'(?:\s|^)input\s*(wire)?\s*(\[.*?:.*?])?\s*([^;]+?);', modcont)
 
         for item in c_para:
             paratype = item[0]
@@ -392,7 +392,7 @@ class Parser:
                                  'packed':    parasize})
 
                 
-        c_para = re.findall(r'inout\s*(wire)?\s*(\[.*?:.*?])?\s*([^;]+?);', modcont)
+        c_para = re.findall(r'(?:\s|^)inout\s*(wire)?\s*(\[.*?:.*?])?\s*([^;]+?);', modcont)
 
         for item in c_para:
             paratype = item[0]
