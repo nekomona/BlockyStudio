@@ -1,0 +1,11 @@
+set_pin_assignment {CLK} { LOCATION = K14; IOSTANDARD = LVCMOS33;  } # input
+
+
+set_pin_assignment {LED_R} { LOCATION = R3; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {LED_G} { LOCATION = J14; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {LED_B} { LOCATION = P13; IOSTANDARD = LVCMOS33;  } # output
+
+set_pin_assignment {USER_KEY} { LOCATION = K16; IOSTANDARD = LVCMOS33;  } # input
+
+set_pin_assignment {TDO} { LOCATION = A4; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {TDI} { LOCATION = B6; IOSTANDARD = LVCMOS33;  }

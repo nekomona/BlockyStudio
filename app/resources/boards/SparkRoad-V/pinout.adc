@@ -1,0 +1,208 @@
+
+# 24MHz OSC Clock
+set_pin_assignment {CLK} { LOCATION = K14; IOSTANDARD = LVCMOS33;  } # input
+
+# LEDs Active LOW
+set_pin_assignment {LED0} { LOCATION = M3; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {LED1} { LOCATION = M4; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {LED2} { LOCATION = N3; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {LED3} { LOCATION = N4; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {LED4} { LOCATION = M5; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {LED5} { LOCATION = P4; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {LED6} { LOCATION = N5; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {LED7} { LOCATION = P5; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {LED8} { LOCATION = R7; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {LED9} { LOCATION = T7; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {LED10} { LOCATION = T8; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {LED11} { LOCATION = T9; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {LED12} { LOCATION = M7; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {LED13} { LOCATION = R12; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {LED14} { LOCATION = T12; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {LED15} { LOCATION = T13; IOSTANDARD = LVCMOS33;  } # output
+
+# RGB LED Active LOW
+set_pin_assignment {RGB_R} { LOCATION = P15; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {RGB_G} { LOCATION = P16; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {RGB_B} { LOCATION = N16; IOSTANDARD = LVCMOS33;  } # output
+
+# Segment LEDs; Seg Active LOW, Dig Active HIGH
+set_pin_assignment {SEG_A} { LOCATION = E3; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {SEG_B} { LOCATION = B3; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {SEG_C} { LOCATION = F4; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {SEG_D} { LOCATION = E4; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {SEG_E} { LOCATION = F5; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {SEG_F} { LOCATION = D3; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {SEG_G} { LOCATION = B2; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {SEG_H} { LOCATION = A2; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {DIG_1} { LOCATION = B1; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {DIG_2} { LOCATION = C3; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {DIG_3} { LOCATION = C2; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {DIG_4} { LOCATION = F3; IOSTANDARD = LVCMOS33;  } # output
+
+# SWs Active (Up) LOW
+set_pin_assignment {SW0} { LOCATION = T4; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {SW1} { LOCATION = R5; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {SW2} { LOCATION = T5; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {SW3} { LOCATION = T6; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {SW4} { LOCATION = M6; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {SW5} { LOCATION = P6; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {SW6} { LOCATION = N6; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {SW7} { LOCATION = P8; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {SW8} { LOCATION = N8; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {SW9} { LOCATION = R9; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {SW10} { LOCATION = P9; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {SW11} { LOCATION = N9; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {SW12} { LOCATION = T14; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {SW13} { LOCATION = R14; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {SW14} { LOCATION = T15; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {SW15} { LOCATION = R15; IOSTANDARD = LVCMOS33;  } # input
+
+# PBs Active (Push) Low
+set_pin_assignment {BTN_L} { LOCATION = H14; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {BTN_R} { LOCATION = L12; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {BTN_U} { LOCATION = J13; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {BTN_D} { LOCATION = G12; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {BTN_C} { LOCATION = G11; IOSTANDARD = LVCMOS33;  } # input
+
+# VGA
+set_pin_assignment {VGA_R0} { LOCATION = L5; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {VGA_R1} { LOCATION = L3; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {VGA_R2} { LOCATION = M2; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {VGA_R3} { LOCATION = M1; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {VGA_R4} { LOCATION = L4; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {VGA_R5} { LOCATION = K5; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {VGA_R6} { LOCATION = K3; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {VGA_R7} { LOCATION = K6; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {VGA_G0} { LOCATION = L1; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {VGA_G1} { LOCATION = K2; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {VGA_G2} { LOCATION = K1; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {VGA_G3} { LOCATION = J1; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {VGA_G4} { LOCATION = H3; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {VGA_G5} { LOCATION = J6; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {VGA_G6} { LOCATION = H1; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {VGA_G7} { LOCATION = H5; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {VGA_B0} { LOCATION = G1; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {VGA_B1} { LOCATION = F1; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {VGA_B2} { LOCATION = F2; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {VGA_B3} { LOCATION = E1; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {VGA_B4} { LOCATION = G3; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {VGA_B5} { LOCATION = E2; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {VGA_B6} { LOCATION = D1; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {VGA_B7} { LOCATION = C1; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {VGA_HS} { LOCATION = J3; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {VGA_VS} { LOCATION = J4; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {VGA_CLK} { LOCATION = H2; IOSTANDARD = LVCMOS33;  } # output
+
+# User Flash (W25Q64)
+set_pin_assignment {FLASH_CS} { LOCATION = P14; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {FLASH_MISO} { LOCATION = K11; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {FLASH_WP} { LOCATION = J11; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {FLASH_HOLD} { LOCATION = L13; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {FLASH_CCLK} { LOCATION = H4; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {FLASH_MOSI} { LOCATION = M13; IOSTANDARD = LVCMOS33;  }
+
+# CSI Port (Parallel Camera I/F)
+set_pin_assignment {D0} { LOCATION = M16; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {D1} { LOCATION = L16; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {D2} { LOCATION = H15; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {D3} { LOCATION = J16; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {D4} { LOCATION = K16; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {D5} { LOCATION = K15; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {D6} { LOCATION = G14; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {D7} { LOCATION = H16; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {D8} { LOCATION = G16; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {D9} { LOCATION = H13; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {PCLK} { LOCATION = K12; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {XCLK} { LOCATION = J12; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {HREF} { LOCATION = F15; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {VSYNC} { LOCATION = E15; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {PWDN} { LOCATION = F14; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {CAMRST} { LOCATION = F13; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {CAMSIOC} { LOCATION = D16; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {CAMSIOD} { LOCATION = D14; IOSTANDARD = LVCMOS33;  }
+
+# SD Slot
+set_pin_assignment {SD_D0} { LOCATION = P1; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {SD_D1} { LOCATION = N1; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {SD_D2} { LOCATION = R2; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {SD_D3} { LOCATION = R1; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {SD_CLK} { LOCATION = M9; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {SD_CMD} { LOCATION = P2; IOSTANDARD = LVCMOS33;  }
+
+# ESP32-S Module
+set_pin_assignment {ESP32_TX} { LOCATION = D5; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {ESP32_RX} { LOCATION = D6; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {ESP32_IO0} { LOCATION = B5; IOSTANDARD = LVCMOS33;  } # output
+set_pin_assignment {ESP32_nEN} { LOCATION = E6; IOSTANDARD = LVCMOS33;  } # output
+
+# CP2102 USB-UART
+set_pin_assignment {UART_TX} { LOCATION = F16; IOSTANDARD = LVCMOS33;  } # input
+set_pin_assignment {UART_RX} { LOCATION = E16; IOSTANDARD = LVCMOS33;  } # output
+
+# RPI Headers
+set_pin_assignment {RPI_3} { LOCATION = A7; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {RPI_5} { LOCATION = A8; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {RPI_7} { LOCATION = A10; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {RPI_8} { LOCATION = A9; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {RPI_10} { LOCATION = A5; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {RPI_11} { LOCATION = A6; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {RPI_12} { LOCATION = A3; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {RPI_13} { LOCATION = A4; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {RPI_15} { LOCATION = A12; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {RPI_16} { LOCATION = A13; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {RPI_18} { LOCATION = D8; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {RPI_19} { LOCATION = E8; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {RPI_21} { LOCATION = A14; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {RPI_22} { LOCATION = B14; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {RPI_23} { LOCATION = C8; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {RPI_24} { LOCATION = B8; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {RPI_26} { LOCATION = B6; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {RPI_27} { LOCATION = C5; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {RPI_28} { LOCATION = C6; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {RPI_29} { LOCATION = C7; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {RPI_31} { LOCATION = C9; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {RPI_32} { LOCATION = B10; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {RPI_33} { LOCATION = A11; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {RPI_35} { LOCATION = C11; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {RPI_36} { LOCATION = B16; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {RPI_37} { LOCATION = B15; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {RPI_38} { LOCATION = C16; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {RPI_40} { LOCATION = C15; IOSTANDARD = LVCMOS33;  }
+
+# Arduino Headers
+# I2C with onboard pull-up, not sharing with Analog pins
+# Digital
+set_pin_assignment {ARD_D0} { LOCATION = H11; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {ARD_D1} { LOCATION = F9; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {ARD_D2} { LOCATION = F10; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {ARD_D3} { LOCATION = F12; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {ARD_D4} { LOCATION = E13; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {ARD_D5} { LOCATION = E12; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {ARD_D6} { LOCATION = E11; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {ARD_D7} { LOCATION = C13; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {ARD_D8} { LOCATION = D12; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {ARD_D9} { LOCATION = B12; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {ARD_D10} { LOCATION = D11; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {ARD_D11} { LOCATION = E10; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {ARD_D12} { LOCATION = C10; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {ARD_D13} { LOCATION = D9; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {ARD_SDA} { LOCATION = F7; IOSTANDARD = LVCMOS33;  }
+set_pin_assignment {ARD_SCL} { LOCATION = E7; IOSTANDARD = LVCMOS33;  }
+
+# Analog
+set_pin_assignment {ARD_A0} { LOCATION = M10; IOSTANDARD = LVCMOS33;  }
+# AD1
+set_pin_assignment {ARD_A1} { LOCATION = P11; IOSTANDARD = LVCMOS33;  }
+# AD3
+set_pin_assignment {ARD_A2} { LOCATION = L10; IOSTANDARD = LVCMOS33;  }
+# AD2
+set_pin_assignment {ARD_A3} { LOCATION = P12; IOSTANDARD = LVCMOS33;  }
+# AD6
+set_pin_assignment {ARD_A4} { LOCATION = N12; IOSTANDARD = LVCMOS33;  }
+# AD5
+set_pin_assignment {ARD_A5} { LOCATION = M12; IOSTANDARD = LVCMOS33;  }
+# AD4
+
+# Extra (8th pin on power/reset header)
+set_pin_assignment {ARD_NC} { LOCATION = R16; IOSTANDARD = LVCMOS33;  }
+# AD7

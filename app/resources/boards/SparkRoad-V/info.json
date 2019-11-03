@@ -1,0 +1,16 @@
+{
+  "label": "SparkRoad-V",
+  "datasheet": "http://icoboard.org/about-icoboard.html",
+  "interface": "GPIO",
+  "constraint": "ADC",
+  "project": "AL",
+  "family": "EG4",
+  "device": "EG4S20BG256",
+  "FPGAResources": {
+    "ffs": 19600,
+    "luts": 19600,
+    "pios": 193,
+    "plbs": 2450,
+    "brams": 80
+  }
+}

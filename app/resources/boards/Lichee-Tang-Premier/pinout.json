@@ -1,0 +1,1 @@
+[{"type": "input", "name": "CLK", "value": "K14"}, {"type": "output", "name": "LED_R", "value": "R3"}, {"type": "output", "name": "LED_B", "value": "P13"}, {"type": "input", "name": "USER_KEY", "value": "K16"}, {"type": "output", "name": "LED_G", "value": "J14"}, {"type": "inout", "name": "TDI", "value": "B6"}, {"type": "inout", "name": "TDO", "value": "A4"}]

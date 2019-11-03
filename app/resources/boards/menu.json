@@ -35,5 +35,12 @@
       "fpga101",
       "iCE40-UP5K"
     ]
+  },
+  {
+	"type": "EG4S20",
+	"boards": [
+		"Lichee-Tang-Premier",
+		"SparkRoad-V"
+	]
   }
 ]
