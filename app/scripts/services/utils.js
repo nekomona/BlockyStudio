@@ -1252,7 +1252,7 @@ angular.module('icestudio')
       var self = this;
       
       // Create map for param inclusion
-      context = context | {};
+      context = context || {};
 
       var evalObject = {
         "paramList": paramList,
@@ -1278,7 +1278,7 @@ angular.module('icestudio')
       var retList = this.clone(paramList);
       var hashFind = [];
 
-      context = context | {};
+      context = context || {};
     
       // Build hashlist for finding parameter by name
       for (var i in retList) {
@@ -1329,8 +1329,32 @@ angular.module('icestudio')
       */
     };
 
-    this.evalPortSize = function (portDesc, paramList, context) {
+    this.evalPortSize = function (portDesc, context) {
+      var self = this;
+      
+      // Create map for param inclusion
+      context = context || {};
 
+      var evalObject = {
+        "portDesc": portDesc,
+        "context": context
+      };
+      
+      return new Promise(function (resolve, reject) {
+        var command = [self.getPythonExecutable(),
+                        common.PORTEVAL_PATH];
+
+        self.executeLongStdioCommand(command, JSON.stringify(evalObject), function (content) {
+          var data = isJSON(content);
+          if (data) {
+            resolve(data);
+          }
+          else {
+            reject();
+          }
+        });
+        
+      });
     };
 
   });

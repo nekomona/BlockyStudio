@@ -417,8 +417,18 @@ angular.module('icestudio')
     }
 
     this.solveProject = function (proj) {
+      var self = this;
       var blocks = proj.design.graph.blocks;
+
+      var blockExtIOList = {};
+      var evalDepId = [];
+
+      var blockIDMap = {};
       var paramList = [];
+      var paramContext = null;
+      var rangeEvalList = {};
+      var rangeEvalMap = {};
+
 
       for (var b in blocks) {
         var block = blocks[b];
@@ -430,11 +440,154 @@ angular.module('icestudio')
         }
       }
 
-      utils.evalParameter(paramList)
+      for (var d in proj.dependencies) {
+        proj.dependencies[d].evaled = false;
+      }
+
+      
+      return utils.evalParameter(paramList)
         .then(function (rescontext) {
           console.log(rescontext);
-      });
-    }
+          paramContext = rescontext.context;
+
+          // 1. Solve size of block ports and I/O ports
+          //    block.data.ports.in/out[].range -> .size
+          //    I/O.data.range -> .size
+
+          var evalDepPromise = [];
+
+          for (var b in blocks) {
+            var block = blocks[b];
+            if (block.type === 'basic.input' || block.type === 'basic.output') {
+              blockExtIOList[block.id] = block.data;
+
+              if (block.data.dynamic) {
+                var rangestr = block.data.range;
+                if (!rangeEvalList[rangestr]) {
+                  rangeEvalList[rangestr] = -1;
+                  rangeEvalMap[rangestr] = [];
+                }
+                rangeEvalMap[rangestr].push(block.data);
+                if (!blockIDMap[block.id]) {
+                  blockIDMap[block.id] = {};
+                }
+                if (block.type === 'basic.input') {
+                  blockIDMap[block.id].out = block.data;
+                } else {
+                  blockIDMap[block.id].in = block.data;
+                }
+              }
+            } else if (block.type === 'basic.code') {
+              var blockport = block.data.ports;
+              for (var p in blockport.in) {
+                var portin = blockport.in[p];
+                if (portin.dynamic) {
+                  var rangestr = portin.range;
+                  if (!rangeEvalList[rangestr]) {
+                    rangeEvalList[rangestr] = -1;
+                    rangeEvalMap[rangestr] = [];
+                  }
+                  rangeEvalMap[rangestr].push(portin);
+                  
+                  if (!blockIDMap[block.id]) {
+                    blockIDMap[block.id] = {};
+                  }
+                  blockIDMap[block.id][portin.name] = portin;
+                }
+              }
+              for (var p in blockport.out) {
+                var portout = blockport.out[p];
+                if (portout.dynamic) {
+                  var rangestr = portout.range;
+                  if (!rangeEvalList[rangestr]) {
+                    rangeEvalList[rangestr] = -1;
+                    rangeEvalMap[rangestr] = [];
+                  }
+                  rangeEvalMap[rangestr].push(portout);
+
+                  if (!blockIDMap[block.id]) {
+                    blockIDMap[block.id] = {};
+                  }
+                  blockIDMap[block.id][portout.name] = portout;
+                }
+              }
+            } else if (!block.type.startsWith('basic.')) {
+              // Generic block
+              // Use Promise.all() chain to evaluate
+              // Use someway to pass parameters inside
+              if (!proj.dependencies[block.type].evaled) {
+                proj.dependencies[block.type].evaled = true;
+                evalDepPromise.push(self.solveProject(proj.dependencies[block.type]));
+                evalDepId.push(block.type);
+              }
+            }
+          }
+          // 1.1 Solve dependency blocks
+          return Promise.all(evalDepPromise);
+        })
+        .then(function (iolist) {
+          // Add dependency io in idmap
+          for (var d in iolist) {
+            var dep = iolist[d];
+            blockIDMap[evalDepId[d]] = dep;
+          }
+          // 1.2 Solve current level
+          return utils.evalPortSize(rangeEvalList, paramContext);
+        })
+        .then(function (reslist) {
+          console.log(reslist);
+
+          // 1.res Assign result to ports in list
+          for (var param in reslist) {
+            var resval = reslist[param];
+            if (resval > 0) {
+              for (var tgt in rangeEvalMap[param]) {
+                var tgtitem = rangeEvalMap[param][tgt];
+                tgtitem.size = resval;
+              }
+            }
+          }
+
+          // 2. Check all wires, replace wire with new size if both ends are with correct size
+
+          for (var w in proj.design.graph.wires) {
+            var wire = proj.design.graph.wires[w];
+
+            var wsource = wire.source;
+            var ssource = -1;
+            if (blockIDMap[wsource.block]) {
+              var sourcePort = blockIDMap[wsource.block][wsource.port];
+              if (sourcePort) {
+                ssource = sourcePort.size;
+              }
+            }
+
+            var wtarget = wire.target;
+            var starget = -1;
+            if (blockIDMap[wtarget.block]) {
+              var targetPort = blockIDMap[wtarget.block][wtarget.port];
+              if (targetPort) {
+                starget = targetPort.size;
+              }
+            }
+
+            if (ssource > 0 && ssource == starget) {
+              wire.size = ssource;
+            } else {
+              // Someway to raise an error
+              wire.size = 96;
+            }
+            
+          }
+
+          for (var d in proj.dependencies) {
+            delete proj.dependencies[d].evaled;
+          }
+
+          console.log(proj);
+          return blockExtIOList;
+        });
+    };
 
     this.addBlockFile = function (filepath, notification) {
       var self = this;
@@ -713,7 +866,6 @@ angular.module('icestudio')
                 if (portObj.packed.match(/[^0-9\[\]:]/)) {
                   newPortPort.dynamic = true;
                   newPortBlock.data.dynamic = true;
-                  newPortWire.dynamic = true;
                 } else {
                   var portnum = portObj.packed.substr(1, portObj.packed.length-2).split(':');
                   wsize = Math.abs(portnum[0] - portnum[1]) + 1;
@@ -735,11 +887,12 @@ angular.module('icestudio')
             // Finishing dependency project
             moduleProj.design.graph.blocks.push(cblock);
             
-            self.solveProject(moduleProj);
+            self.solveProject(moduleProj).then(function () {
+              // Add block to project
+              self.addBlock(moduleProj);
+              alertify.success(gettextCatalog.getString('Block {{name}} imported', { name: utils.bold(blockName) }));
+            });
 
-            // Add block to project
-            self.addBlock(moduleProj);
-            alertify.success(gettextCatalog.getString('Block {{name}} imported', { name: utils.bold(blockName) }));
           });
           console.log(data);
         })

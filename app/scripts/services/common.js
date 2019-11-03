@@ -52,6 +52,7 @@ angular.module('icestudio')
     this.SCRIPT_DIR = nodePath.join('resources', 'scripts');
     this.SVMODULE_PATH = nodePath.join(this.SCRIPT_DIR, 'svmodule.py');
     this.PARAMEVAL_PATH = nodePath.join(this.SCRIPT_DIR, 'parameval.py');
+    this.PORTEVAL_PATH = nodePath.join(this.SCRIPT_DIR, 'porteval.py');
 
     this.BASE_DIR = process.env.HOME || process.env.USERPROFILE;
     this.ICESTUDIO_DIR = safeDir(nodePath.join(this.BASE_DIR, '.icestudio'), this);
