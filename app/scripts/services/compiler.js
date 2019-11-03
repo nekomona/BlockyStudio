@@ -65,7 +65,7 @@ angular.module('icestudio')
       var moduleNames = nameList.moduleNames;
       var genname = '';
       if (project.package.name) {
-        genname = project.package.name.replace(' ', '_');
+        genname = project.package.name.replace(/[^\w]/g, '_');
         if(assocIncludes(moduleNames, genname, d)) {
           genname += '_' + utils.digestId(d);
         }
@@ -78,9 +78,10 @@ angular.module('icestudio')
 
     function getModuleName(name, block, i, nameList) {
       var moduleNames = nameList.moduleNames;
-      if (moduleNames[block.id]) {
+      if (moduleNames[name+block.id]) {
         // code blocks
-        return moduleNames[block.id];
+        // attempt to fix issues about old icestudio cloned modules with same uuid for code block in different project
+        return moduleNames[name+block.id];
       } else if (moduleNames[block.type]) {
         // dependencies blocks
         return moduleNames[block.type]
@@ -89,13 +90,13 @@ angular.module('icestudio')
         if (block.type === 'basic.code') {
           if (block.data.name) {
             genname = name + '_' + block.data.name;
-            if (assocIncludes(moduleNames, genname, block.id)) {
+            if (assocIncludes(moduleNames, genname, name+block.id)) {
               genname = name + '_code_' + block.data.name + i.toString();
             }
           } else {
             genname =  name + '_code_' + i.toString();
           }
-          moduleNames[block.id] = genname;
+          moduleNames[name+block.id] = genname;
         } else {
           genname = utils.digestId(block.type);
           moduleNames[block.type] = genname;
@@ -1015,17 +1016,9 @@ angular.module('icestudio')
         // Declare init output pins
 
         var initPins = opt.initPins || getInitPins(project);
-        if (initPins.length > 1) {
-          for (i in initPins) {
-            code += 'set_pin_assignment {vinit[' + i + ']} { LOCATION = ';
-            code += initPins[i].pin;
-            code += '; IOSTANDARD = LVCMOS33;  }'
-            code += '\n';
-          }
-        }
-        else if (initPins.length > 0) {
-          code += 'set_pin_assignment {vinit} { LOCATION = ';
-          code += initPins[0].pin;
+        for (i in initPins) {
+          code += 'set_pin_assignment {vinit[' + i + ']} { LOCATION = ';
+          code += initPins[i].pin;
           code += '; IOSTANDARD = LVCMOS33;  }'
           code += '\n';
         }
