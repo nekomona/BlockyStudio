@@ -2083,6 +2083,154 @@ joint.shapes.ice.InfoView = joint.shapes.ice.ModelView.extend({
   }
 });
 
+// Bus end block
+joint.shapes.ice.BusInterface = joint.shapes.ice.Model.extend({
+  defaults: joint.util.deepSupplement({
+    type: 'ice.BusInterface',
+    size: {
+      width: 96,
+      height: 128
+    }
+  }, joint.shapes.ice.Model.prototype.defaults)
+})
+
+joint.shapes.ice.BusInterfaceView = joint.shapes.ice.ModelView.extend({
+
+  // Image comments:
+  // - img: fast load, no interactive
+  // - object: slow load, interactive
+  // - inline SVG: fast load, interactive, but...
+  //               old SVG files have no viewBox, therefore no properly resize
+  //               Inkscape adds this field saving as "Optimize SVG" ("Enable viewboxing")
+
+  template: '\
+  <div class="busif-block">\
+    <div class="busif-content">\
+      <div class="img-container"><img></div>\
+      <label>Bus</label>\
+      <span class="tooltiptext"></span>\
+    </div>\
+  </div>\
+  ',
+
+
+  initialize: function () {
+    joint.shapes.ice.ModelView.prototype.initialize.apply(this, arguments);
+    
+    // Initialize content
+    this.initializeContent();
+
+    this.applyShape();
+  },
+
+  initializeContent: function () {
+    /*
+    var image = this.model.get('image');
+    var label = this.model.get('label');
+    var ports = this.model.get('leftPorts');
+
+    var imageSelector = this.$box.find('img');
+    var labelSelector = this.$box.find('label');
+
+    if (image) {
+      // Render img
+      imageSelector.attr('src', 'data:image/svg+xml,' + image);
+
+      // Render SVG
+      //imageSelector.append(decodeURI(image));
+
+      imageSelector.removeClass('hidden');
+      labelSelector.addClass('hidden');
+    }
+    else {
+      // Render label
+      labelSelector.html(label);
+      labelSelector.removeClass('hidden');
+      imageSelector.addClass('hidden');
+    }
+    */
+    this.contentSelector = this.$box.find('busif-content');
+  },
+
+  applyShape: function () {
+    var data = this.model.get('data');
+    var bustype = data.type;
+    var busdir = data.direction;
+    var $label = this.$box.find('label');
+
+    $label.text((bustype || '') + '\n' + (busdir || ''));
+    
+    var leftPorts = this.model.get('leftPorts');
+    var rightPorts = this.model.get('rightPorts');
+    var portcnt = Math.max(leftPorts.length, rightPorts.length);
+
+    this.model.attributes.size.height = 32 + 32 * portcnt;
+  },
+
+  apply: function () {
+    this.applyShape();
+    this.render();
+  },
+
+  update: function () {
+    this.renderPorts();
+    joint.dia.ElementView.prototype.update.apply(this, arguments);
+  },
+
+  updateBox: function () {
+    var i, port;
+    var bbox = this.model.getBBox();
+    var data = this.model.get('data');
+    var state = this.model.get('state');
+    
+    var rules = this.model.get('rules');
+    var leftPorts = this.model.get('leftPorts');
+    var rightPorts = this.model.get('rightPorts');
+    var modelId = this.model.id;
+
+    // Render ports width
+    var width = WIRE_WIDTH * state.zoom;
+    this.$('.port-wire').css('stroke-width', width);
+    this.$('.port-wire').css('stroke', null);
+    // Set buses
+    for (i in leftPorts) {
+      port = leftPorts[i];
+      if (port.size && isNaN(port.size)) {
+        this.$('#port-wire-' + modelId + '-' + port.id).css('stroke-width', width * 5);
+        this.$('#port-wire-' + modelId + '-' + port.id).css('stroke', 'cornflowerblue');
+      } else if (port.size > 1) {
+        this.$('#port-wire-' + modelId + '-' + port.id).css('stroke-width', width * 3);
+      }
+    }
+    for (i in rightPorts) {
+      port = rightPorts[i];
+      if (port.size && isNaN(port.size)) {
+        this.$('#port-wire-' + modelId + '-' + port.id).css('stroke-width', width * 5);
+        this.$('#port-wire-' + modelId + '-' + port.id).css('stroke', 'cornflowerblue');
+      } else if (port.size > 1) {
+        this.$('#port-wire-' + modelId + '-' + port.id).css('stroke-width', width * 3);
+      }
+    }
+    
+    // Render content
+    this.$box.find('.busif-content').css({
+      left: Math.round(bbox.width / 2.0 * (state.zoom - 1)),
+      top: Math.round(bbox.height / 2.0 * (state.zoom - 1)),
+      width: Math.round(bbox.width),
+      height: Math.round(bbox.height),
+      transform: 'scale(' + state.zoom + ')'
+    });
+
+    // Render block
+    this.$box.css({
+      left: bbox.x * state.zoom + state.pan.x,
+      top: bbox.y * state.zoom + state.pan.y,
+      width: bbox.width * state.zoom,
+      height: bbox.height * state.zoom
+    });
+  }
+});
+
 
 // Custom wire
 
@@ -2264,7 +2412,7 @@ joint.shapes.ice.WireView = joint.dia.LinkView.extend({
         V($text[0]).text(textAttributes.text + '', { annotations: textAttributes.annotations });
       }
       $labels.append(labelNode);
-
+      this.labelNode = $(labelNode);
     }, this);
 
     return this;
@@ -2294,13 +2442,31 @@ joint.shapes.ice.WireView = joint.dia.LinkView.extend({
   },
 
   updateWireProperties: function (size) {
-    if(size > 1) {
+    if (size && isNaN(size)) {
+      this.$('.connection').css('stroke-width', WIRE_WIDTH * 5);
+      this.$('.connection').css('stroke', 'cornflowerblue');
+      this.model.label(0, { attrs: { text: { text: size } } });
+      this.model.bifurcationMarkup = this.model.bifurcationMarkup.replace(/<%= r %>/g, WIRE_WIDTH * 6);
+    } else if(size > 1) {
       this.$('.connection').css('stroke-width', WIRE_WIDTH * 3);
+      this.$('.connection').css('stroke', null);
       this.model.label(0, { attrs: { text: { text: size } } });
       this.model.bifurcationMarkup = this.model.bifurcationMarkup.replace(/<%= r %>/g, WIRE_WIDTH * 4);
     }
     else {
+      this.$('.connection').css('stroke', null);
       this.model.bifurcationMarkup = this.model.bifurcationMarkup.replace(/<%= r %>/g, WIRE_WIDTH * 2);
+    }
+    if (this.labelNode) {
+      var textnode = this.labelNode.find('text')[0];
+      var rectnode = this.labelNode.find('rect')[0];
+
+      if (textnode && rectnode) {
+        var textwidth = textnode.getBBox().width;
+        var halfrect = Math.ceil(textwidth/2 + 2);
+        rectnode.setAttribute('x', ['-', halfrect, 'px'].join(''));
+        rectnode.setAttribute('width', [halfrect*2, 'px'].join(''));
+      }
     }
   },
 

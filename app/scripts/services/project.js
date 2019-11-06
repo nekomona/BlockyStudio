@@ -965,6 +965,7 @@ angular.module('icestudio')
             case 'basic.inputLabel':
             case 'basic.constant':
             case 'basic.memory':
+            case 'basic.busInterface':
               break;
             case 'basic.code':
               for (var j in block.data.ports.in) {

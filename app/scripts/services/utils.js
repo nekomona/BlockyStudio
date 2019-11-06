@@ -1092,7 +1092,9 @@ angular.module('icestudio')
           cell.type === 'ice.Code' ||
           cell.type === 'ice.Info' ||
           cell.type === 'ice.Constant' ||
-          cell.type === 'ice.Memory') {
+          cell.type === 'ice.Memory' ||
+          cell.type === 'ice.BusInterface'
+          ) {
           var block = {};
           block.id = cell.id;
           block.type = cell.blockType;
@@ -1101,7 +1103,8 @@ angular.module('icestudio')
           if (cell.type === 'ice.Generic' ||
             cell.type === 'ice.Code' ||
             cell.type === 'ice.Info' ||
-            cell.type === 'ice.Memory') {
+            cell.type === 'ice.Memory'
+            ) {
             block.size = cell.size;
           }
           blocks.push(block);
@@ -1111,7 +1114,7 @@ angular.module('icestudio')
           wire.source = { block: cell.source.id, port: cell.source.port };
           wire.target = { block: cell.target.id, port: cell.target.port };
           wire.vertices = cell.vertices;
-          wire.size = (cell.size > 1) ? cell.size : undefined;
+          wire.size = cell.size;
           wires.push(wire);
         }
       }

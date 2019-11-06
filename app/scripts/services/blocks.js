@@ -31,11 +31,9 @@ angular.module('icestudio')
         case 'basic.outputLabel':
           newBasicOutputLabel(callback);
           break;
-         case 'basic.inputLabel':
+        case 'basic.inputLabel':
           newBasicInputLabel(callback);
           break;
-
-
         case 'basic.constant':
           newBasicConstant(callback);
           break;
@@ -47,6 +45,9 @@ angular.module('icestudio')
           break;
         case 'basic.info':
           newBasicInfo(callback);
+          break;
+        case 'basic.busInterface':
+          newBasicBusInterface(callback);
           break;
         default:
           break;
@@ -735,7 +736,66 @@ angular.module('icestudio')
       }
     }
 
+    function newBasicBusInterface(callback) {
+      var blockInstance = {
+        id: null,
+        data: {},
+        type: 'basic.busInterface',
+        position: { x: 0, y: 0 }
+      };
 
+      var busOption = [];
+      for (var b in common.bus) {
+        busOption.push({ value: b, label: common.bus[b].name });
+      }
+
+      var formSpecs = [
+        {
+          type: 'combobox',
+          label: gettextCatalog.getString('Bus Direction'),
+          value: 'master',
+          options: [
+            { value: 'master', label: gettextCatalog.getString('master') },
+            { value: 'slave', label: gettextCatalog.getString('slave') },
+            { value: 'monitor', label: gettextCatalog.getString('monitor') }
+          ]
+        },
+        {
+          type: 'combobox',
+          label: gettextCatalog.getString('Bus type'),
+          value: busOption[0].value,
+          options: busOption
+        }
+      ];
+      utils.renderForm(formSpecs, function(evt, values) {
+        var awidth = values[0];
+        var dwidth = values[1];
+        var busdir = values[2];
+        var bustype = values[3];
+        var busdesc = common.bus[bustype];
+        
+        if (resultAlert) {
+          resultAlert.dismiss(false);
+        }
+        // Validate values
+        if (!busdesc) {
+          evt.cancel = true;
+          resultAlert = alertify.warning(gettextCatalog.getString('Bus not found'));
+          return;
+        }
+        // Create blocks
+        var cells = [];
+        blockInstance.data = {
+          direction: busdir,
+          type: bustype
+        };
+        cells.push(loadBasic(blockInstance));
+
+        if (callback) {
+          callback(cells);
+        }
+      });
+    }
     //-- Load
 
     function loadBasic(instance, disabled) {
@@ -744,12 +804,11 @@ angular.module('icestudio')
           return loadBasicInput(instance, disabled);
         case 'basic.output':
           return loadBasicOutput(instance, disabled);
-         case 'basic.outputLabel':
+        case 'basic.outputLabel':
           return loadBasicOutputLabel(instance, disabled);
-           case 'basic.inputLabel':
+        case 'basic.inputLabel':
           return loadBasicInputLabel(instance, disabled);
-
-          case 'basic.constant':
+        case 'basic.constant':
           return loadBasicConstant(instance, disabled);
         case 'basic.memory':
           return loadBasicMemory(instance, disabled);
@@ -757,6 +816,8 @@ angular.module('icestudio')
           return loadBasicCode(instance, disabled);
         case 'basic.info':
           return loadBasicInfo(instance, disabled);
+        case 'basic.busInterface':
+          return loadBasicBusInterface(instance, disabled);
         default:
           break;
       }
@@ -1045,6 +1106,77 @@ angular.module('icestudio')
       return cell;
     }
 
+    function loadBasicBusInterface(instance, disabled) {
+      var data = instance.data;
+      // build bus unbundle ports
+      var busdesc = common.bus[data.type];
+      var leftPorts = [];
+      var rightPorts = [];
+
+      for (var p in busdesc.ports) {
+        var busport = busdesc.ports[p];
+        var descport = {};
+
+        if (data.direction === 'master') {
+          descport.id = busport.name_master;
+          descport.name = busport.name_master;
+          descport.label = busdesc.prefix + busport.name_master;
+        } else if (data.direction === 'slave') {
+          descport.id = busport.name_slave;
+          descport.name = busport.name_slave;
+          descport.label = busdesc.prefix + busport.name_slave; 
+        } else if (data.direction === 'monitor') {
+          descport.id = busport.name_monitor;
+          descport.name = busport.name_monitor;
+          descport.label = busdesc.prefix + busport.name_monitor; 
+        }
+
+        if (!isNaN(busport.size)) {
+          descport.size = parseInt(busport.size);
+          if (busport.size > 1) {
+            descport.label += ['[', busport.size-1, ':0]'].join('');
+          }
+        } else {
+          descport.label += ['[', busport.size, '-1:0]'].join('');
+        }
+
+        if (data.direction === busport.source) {
+          leftPorts.push(descport);
+        } else {
+          rightPorts.push(descport);
+        }
+        
+      }
+
+      // build bus bundle port
+      if (data.direction === 'master') {
+        rightPorts.push({
+          id: 'bus',
+          name: 'bus',
+          label: data.type + ' bus',
+          size: data.type
+        });
+      } else {
+        leftPorts.push({
+          id: 'bus',
+          name: 'bus',
+          label: data.type + ' bus',
+          size: data.type
+        })
+      }
+
+      var cell = new joint.shapes.ice.BusInterface({
+        id: instance.id,
+        blockType: instance.type,
+        data: instance.data,
+        position: instance.position,
+        disabled: disabled,
+        leftPorts: leftPorts,
+        rightPorts: rightPorts,
+      });
+
+      return cell;
+    }
     function loadWire(instance, source, target) {
 
       // Find selectors
@@ -1092,15 +1224,13 @@ angular.module('icestudio')
         case 'basic.output':
           editBasicOutput(cellView, callback);
           break;
-          case 'basic.outputLabel':
+        case 'basic.outputLabel':
           editBasicOutputLabel(cellView, callback);
           break;
-          case 'basic.inputLabel':
+        case 'basic.inputLabel':
           editBasicInputLabel(cellView, callback);
           break;
-
-
-          case 'basic.constant':
+        case 'basic.constant':
           editBasicConstant(cellView);
           break;
         case 'basic.memory':
@@ -1111,6 +1241,9 @@ angular.module('icestudio')
           break;
         case 'basic.info':
           editBasicInfo(cellView);
+          break;
+        case 'basic.busInterface':
+          editBasicBusInterface(cellView, callback);
           break;
         default:
           break;
@@ -1693,6 +1826,75 @@ angular.module('icestudio')
       }
       cellView.model.set('data', data);
       cellView.apply();
+    }
+    
+    function editBasicBusInterface(cellView, callback) {
+      var graph = cellView.paper.model;
+      var block = cellView.model.attributes;
+
+      var busOption = [];
+      for (var b in common.bus) {
+        busOption.push({ value: b, label: common.bus[b].name });
+      }
+
+      var formSpecs = [
+        {
+          type: 'combobox',
+          label: gettextCatalog.getString('Bus Direction'),
+          value: block.data.direction,
+          options: [
+            { value: 'master', label: gettextCatalog.getString('master') },
+            { value: 'slave', label: gettextCatalog.getString('slave') },
+            { value: 'monitor', label: gettextCatalog.getString('monitor') }
+          ]
+        },
+        {
+          type: 'combobox',
+          label: gettextCatalog.getString('Bus type'),
+          value: block.data.type,
+          options: busOption
+        }
+      ];
+      utils.renderForm(formSpecs, function(evt, values) {
+        var awidth = values[0];
+        var dwidth = values[1];
+        var busdir = values[2];
+        var bustype = values[3];
+        var busdesc = common.bus[bustype];
+
+        if (resultAlert) {
+          resultAlert.dismiss(false);
+        }
+        // Validate values
+        if (!busdesc) {
+          evt.cancel = true;
+          resultAlert = alertify.warning(gettextCatalog.getString('Bus not found'));
+          return;
+        }
+        // Create blocks
+        if (   (block.data.direction || '') !== (busdir || '')
+            || (block.data.type || '') !== (bustype || '') ) {
+          var blockInstance = {
+            id: null,
+            data: {
+              direction: busdir,
+              type: bustype
+            },
+            type: block.blockType,
+            position: {
+              x: block.position.x,
+              y: block.position.y
+            }
+          };
+          if (callback) {
+            graph.startBatch('change');
+            callback(loadBasicBusInterface(blockInstance));
+            cellView.model.remove();
+            graph.stopBatch('change');
+            resultAlert = alertify.success(gettextCatalog.getString('Block updated'));
+          }
+        }
+      });
     }
 
   });

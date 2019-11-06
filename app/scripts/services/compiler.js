@@ -364,6 +364,61 @@ angular.module('icestudio')
                 }
               }
             }
+            if( lin.type === 'basic.busInterface' ) {
+              var busMasterId = '';
+              var wireConnected = [];
+              var bustype = lin.data.type;
+
+              var lookupPortMonitorName = function(name) {
+                var bus = common.bus[bustype];
+                for (var pi in bus.ports) {
+                  var p = bus.ports[pi];
+                  if (name == p.name_master || name == p.name_slave || name == p.name_monitor) {
+                    return p.name_monitor
+                  }
+                }
+              }
+
+              if( lin.data.direction === 'master' ) {
+                busMasterId = lin.id;
+              }
+              for(widx in graph.wires){
+                vw=graph.wires[widx];
+                if(vw.size && isNaN(vw.size)) {
+                  // Bus
+                  if(vw.target.block === lin.id) {
+                    busMasterId = vw.source.block;
+                  }
+                } else {
+                  if(vw.source.block === lin.id ||
+                    vw.target.block === lin.id) {
+                      wireConnected.push(vw);
+                  } 
+                }
+              }
+              for(var vwi in wireConnected) {
+                vw = wireConnected[vwi];
+                if(vw.source.block === lin.id){
+                  var vwireName = busMasterId + lookupPortMonitorName(vw.source.port);
+                  if(typeof vwiresLut[vwireName] === 'undefined'){
+                      vwiresLut[vwireName]={source:[],target:[]};
+                  }
+
+                  twire=vw.target;
+                  twire.size=vw.size;
+                  vwiresLut[vwireName].target.push(twire);
+                }
+                if(vw.target.block === lin.id){
+                  var vwireName = busMasterId + lookupPortMonitorName(vw.target.port);
+                  if(typeof vwiresLut[vwireName] === 'undefined'){
+                      vwiresLut[vwireName]={source:[],target:[]};
+                  }
+                  twire=vw.source;
+                  twire.size=vw.size;
+                  vwiresLut[vwireName].source.push(twire);
+                }
+              }
+            }
           }//for lin
         }// if typeof....
 
@@ -392,12 +447,24 @@ angular.module('icestudio')
         var wtemp=[];
         var iwtemp;
         var wi;
+        var getBlockById = function(id) {
+          for (var b in graph.blocks) {
+            var block = graph.blocks[b];
+            if (block.id === id) {
+              return block;
+            }
+          }
+        }
+
         for (wi=0;wi<graph.wires.length;wi++){
 
             if( graph.wires[wi].source.port === 'outlabel' ||
                 graph.wires[wi].target.port  === 'outlabel' ||
                 graph.wires[wi].source.port === 'inlabel' ||
-                graph.wires[wi].target.port === 'inlabel' ){
+                graph.wires[wi].target.port === 'inlabel' ||
+                getBlockById(graph.wires[wi].source.block).type === 'basic.busInterface' ||
+                getBlockById(graph.wires[wi].target.block).type === 'basic.busInterface'
+                ){
 
                     graph.wiresVirtual.push(graph.wires[wi]);
 
@@ -519,7 +586,9 @@ angular.module('icestudio')
             block.type !== 'basic.memory' &&
             block.type !== 'basic.info' &&
             block.type !== 'basic.inputLabel' &&
-            block.type !== 'basic.outputLabel') {
+            block.type !== 'basic.outputLabel' &&
+            block.type !== 'basic.busInterface'
+            ) {
 
           // Header
 
