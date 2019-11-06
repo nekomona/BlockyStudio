@@ -34,6 +34,9 @@ angular.module('icestudio')
       brams: '-'
     };
 
+    // Bus interface
+    this.bus = [];
+
     // Command output
     this.commandOutput = '';
 
