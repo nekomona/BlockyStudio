@@ -36,8 +36,11 @@ joint.connectors.ice = function(sourcePoint, targetPoint, vertices) {
   full.push(targetPoint.x, targetPoint.y);
   wrap.push(targetPoint.x - tx, targetPoint.y - ty);
 
+  /*
   return {
     full: full.join(' '),
     wrap: wrap.join(' ')
   };
+  */
+  return full.join(' ');
 };

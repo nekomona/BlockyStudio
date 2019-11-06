@@ -2294,7 +2294,7 @@ joint.shapes.ice.WireView = joint.dia.LinkView.extend({
   },
 
   updateWireProperties: function (size) {
-    if (size > 1) {
+    if(size > 1) {
       this.$('.connection').css('stroke-width', WIRE_WIDTH * 3);
       this.model.label(0, { attrs: { text: { text: size } } });
       this.model.bifurcationMarkup = this.model.bifurcationMarkup.replace(/<%= r %>/g, WIRE_WIDTH * 4);
@@ -2315,9 +2315,9 @@ joint.shapes.ice.WireView = joint.dia.LinkView.extend({
     var pathData = this.getPathData(route);
 
     // The markup needs to contain a `.connection`
-    this._V.connection.attr('d', pathData.full);
+    this._V.connection.attr('d', pathData);
     if (this._V.connectionWrap) {
-      this._V.connectionWrap.attr('d', pathData.wrap);
+      this._V.connectionWrap.attr('d', pathData);
     }
 
     this._translateAndAutoOrientArrows(this._V.markerSource, this._V.markerTarget);
