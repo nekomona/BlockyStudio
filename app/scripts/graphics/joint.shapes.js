@@ -722,7 +722,7 @@ joint.shapes.ice.IOView = joint.shapes.ice.ModelView.extend({
         selectCode += '</select>';
 
         selectScript += '$("#' + comboId + data.pins[i].index + '").select2(';
-        selectScript += '{placeholder: "", allowClear: true, dropdownCssClass: "bigdrop",';
+        selectScript += '{width:"style", placeholder: "", allowClear: true, dropdownCssClass: "bigdrop",';
         // Match only words that start with the selected search term
         // http://stackoverflow.com/questions/31571864/select2-search-match-only-words-that-start-with-search-term
         selectScript += 'matcher: function(params, data) {';
