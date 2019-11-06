@@ -483,23 +483,31 @@ class PyJsParser:
         start = self.index
         number = ''
         if ch != '.':
-            while (isDecimalDigit(self.ccode()) or self.source[self.index] in ("'", '_')):
+            # Verilog numbers allow space between [width], ['], [radix] and [value]
+            while (isDecimalDigit(self.ccode()) or self.source[self.index] in ("'", '_', ' ')):
                 ch = self.source[self.index]
+                self.index += 1
                 if not ch in ("'", '_'):
                     number += ch
-                self.index += 1
-                if (ch == "'"):
+                if (ch == ' '):
+                    self.skipComment()
+                elif (ch == "'"):
+                    self.skipComment()
                     ch = self.source[self.index]
                     if (ch == 'h' or ch == 'H'):
                         self.index += 1
+                        self.skipComment()
                         return self.scanHexLiteral(start)
                     if (ch == 'b' or ch == 'B'):
                         self.index += 1
+                        self.skipComment()
                         return self.scanBinaryLiteral(start)
                     if (ch == 'd' or ch == 'D'):
                         self.index += 1
+                        self.skipComment()
                         return self.scanDecimalLiteral(start)
                     if (ch == 'o' or ch == 'O'):
+                        self.skipComment()
                         return self.scanOctalLiteral(ch, start)
 
             ch = self.source[self.index]

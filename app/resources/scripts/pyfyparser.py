@@ -8,7 +8,10 @@ def digestNode(node):
     elif nodetype == 'Identifier':
         return node['name']
     elif nodetype == 'Literal':
-        return node['raw']
+        if type(node['value']) == unicode:
+            return node['raw']
+        else:
+            return str(node['value'])
     elif nodetype == 'UnaryExpression' or nodetype == 'UpdateExpression':
         if node['prefix']:
             rstr = '({0}{1})'
