@@ -1,0 +1,182 @@
+{
+  "Wishbone": {
+	"name": "Wishbone",
+	"prefix": "wb",
+	"address": true,
+	"param": {
+	  "AW": 32,
+	  "DW": 32
+	},
+	"ports": [
+		{
+			"name_master": "_cyc_o",
+			"name_slave": "_cyc_i",
+			"name_monitor": "_cyc",
+			"source": "master",
+			"size": "1"
+		},
+		{
+			"name_master": "_stb_o",
+			"name_slave": "_stb_i",
+			"name_monitor": "_stb",
+			"source": "master",
+			"size": "1"
+		},
+		{
+			"name_master": "_we_o",
+			"name_slave": "_we_i",
+			"name_monitor": "_we",
+			"source": "master",
+			"size": "1"
+		},
+		{
+			"name_master": "_ack_i",
+			"name_slave": "_ack_o",
+			"name_monitor": "_ack",
+			"source": "slave",
+			"size": "1"
+		},
+		{
+			"name_master": "_sel_o",
+			"name_slave": "_sel_i",
+			"name_monitor": "_sel",
+			"source": "master",
+			"size": "4"
+		},
+		{
+			"name_master": "_adr_o",
+			"name_slave": "_adr_i",
+			"name_monitor": "_adr",
+			"source": "master",
+			"size": "32"
+		},
+		{
+			"name_master": "_dat_o",
+			"name_slave": "_dat_i",
+			"name_monitor": "_dat_m",
+			"source": "master",
+			"size": "32"
+		},
+		{
+			"name_master": "_dat_i",
+			"name_slave": "_dat_o",
+			"name_monitor": "_dat_s",
+			"source": "slave",
+			"size": "32"
+		}
+	]
+  },
+  "PicoMem": {
+	"name": "PicoMem",
+	"prefix": "pico",
+	"address": true,
+	"param": {
+	  "AW": 32,
+	  "DW": 32
+	},
+	"ports": [
+		{
+			"name_master": "_valid",
+			"name_slave": "_valid",
+			"name_monitor": "_valid",
+			"source": "master",
+			"size": "1"
+		},
+		{
+			"name_master": "_ready",
+			"name_slave": "_ready",
+			"name_monitor": "_ready",
+			"source": "slave",
+			"size": "1"
+		},
+		{
+			"name_master": "_addr",
+			"name_slave": "_addr",
+			"name_monitor": "_addr",
+			"source": "master",
+			"size": "32"
+		},
+		{
+			"name_master": "_wdata",
+			"name_slave": "_wdata",
+			"name_monitor": "_wdata",
+			"source": "master",
+			"size": "32"
+		},
+		{
+			"name_master": "_wstrb",
+			"name_slave": "_wstrb",
+			"name_monitor": "_wstrb",
+			"source": "master",
+			"size": "4"
+		},
+		{
+			"name_master": "_rdata",
+			"name_slave": "_rdata",
+			"name_monitor": "_rdata",
+			"source": "slave",
+			"size": "32"
+		}
+	]
+  },
+  "APB": {
+	"name": "APB",
+	"prefix": "apb",
+	"address": true,
+	"param": {
+	  "AW": 32,
+	  "DW": 32
+	},
+	"ports": [
+		{
+			"name_master": "_paddr",
+			"name_monitor": "_paddr",
+			"name_slave": "_paddr",
+			"source": "master",
+			"size": "32"
+		},
+		{
+			"name_master": "_pwrite",
+			"name_monitor": "_pwrite",
+			"name_slave": "_pwrite",
+			"source": "master",
+			"size": "1"
+		},
+		{
+			"name_master": "_psel",
+			"name_monitor": "_psel",
+			"name_slave": "_psel",
+			"source": "master",
+			"size": "1"
+		},
+		{
+			"name_master": "_penable",
+			"name_monitor": "_penable",
+			"name_slave": "_penable",
+			"source": "master",
+			"size": "1"
+		},
+		{
+			"name_master": "_pready",
+			"name_monitor": "_pready",
+			"name_slave": "_pready",
+			"source": "slave",
+			"size": "1"
+		},
+		{
+			"name_master": "_pwdata",
+			"name_monitor": "_pwdata",
+			"name_slave": "_pwdata",
+			"source": "master",
+			"size": "32"
+		},
+		{
+			"name_master": "_prdata",
+			"name_monitor": "_prdata",
+			"name_slave": "_prdata",
+			"source": "slave",
+			"size": "32"
+		}
+	]
+  }
+}

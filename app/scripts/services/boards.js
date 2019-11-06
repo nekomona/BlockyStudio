@@ -34,6 +34,11 @@ angular.module('icestudio')
       common.platforms = platforms;
     };
 
+    this.loadBusInterfaces = function() {
+      var busif = readJSONFile('resources', 'busif.json');
+      common.bus = busif;
+    }
+
     function readJSONFile(filepath, filename) {
       var ret = {};
       try {

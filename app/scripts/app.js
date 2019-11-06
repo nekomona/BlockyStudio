@@ -36,6 +36,7 @@ angular
     }, 0);
       // Load boards
     boards.loadBoards();
+    boards.loadBusInterfaces();
     // Load profile 
     utils.loadProfile(profile, function() {
       // Load collections 
