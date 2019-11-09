@@ -709,6 +709,27 @@ angular.module('icestudio')
                 }
                 moduleObj.port = selPort;
 
+                // write code for code block
+                var codes = [];
+                codes.push('//@include ' + fname);
+                codes.push('');
+                if (moduleObj.parameter.length > 0) {
+                  codes.push(moduleObj.name + ' #(');
+                  for (var p in moduleObj.parameter) {
+                    var pname = moduleObj.parameter[p].name;
+                    codes.push(['  .', pname, '(', pname, ')'].join(''));
+                  }
+                  codes.push([') u_', moduleObj.name, ' ('].join(''));
+                } else {
+                  codes.push([moduleObj.name, ' u_', moduleObj.name, ' ('].join(''));
+                }
+                for (var p in moduleObj.port) {
+                  var pname = moduleObj.port[p].name;
+                  codes.push(['  .', pname, '(', pname, ')'].join(''));
+                }
+                codes.push(')');
+                codes.push('');
+
                 var parameterCount = moduleObj.parameter.length;
                 var inputCount = 0;
                 var outputCount = 0;
@@ -754,7 +775,7 @@ angular.module('icestudio')
                   "id": joint.util.uuid(),
                   "type": "basic.code",
                   "data": {
-                    "code": "//@include " + fname + "\n",
+                    "code": codes.join('\n'),
                     "params": [],
                     "ports": {
                       "in": [],
