@@ -692,6 +692,8 @@ angular.module('icestudio')
                 graph.wires[wi].target.port  === 'outlabel' ||
                 graph.wires[wi].source.port === 'inlabel' ||
                 graph.wires[wi].target.port === 'inlabel' ||
+                getBlockById(graph.wires[wi].source.block).type === 'basic.busInterface' ||
+                getBlockById(graph.wires[wi].target.block).type === 'basic.busInterface' ||
                 CheckTypeIsBus(graph.wires[wi].size)
                 ){
 
