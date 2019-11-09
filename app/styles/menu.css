@@ -149,7 +149,8 @@
   height:24px;
 }
 .alertify .ajs-dialog {
-  max-width: 600px;
+  margin: 5%;
+  max-width: none;
 }
 
 .credits-developers-list{

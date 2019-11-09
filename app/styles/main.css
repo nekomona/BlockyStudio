@@ -230,3 +230,24 @@ opacity:0.4;
   height:80px;
   z-index:1;
 }
+
+.port-content {
+  display: flex;
+  flex-direction: row;
+}
+
+.port-row {
+  width: 30%;
+  margin-right: 10px;
+}
+
+.port-para-row {
+  width: 40%;
+}
+
+.port-scroll {
+  outline: gray solid thin;
+  height: 55vh;
+  overflow: auto;
+  padding-left: 5px;
+}

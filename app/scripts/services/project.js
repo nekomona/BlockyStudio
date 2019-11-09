@@ -692,207 +692,218 @@ angular.module('icestudio')
             }
             // Find module and create new dependency
             var moduleObj = data[moduleId];
+            process.nextTick(function() {
+              utils.portSelectionPrompt(moduleObj, function(evt, values) {
+                var moduleProj = _default();
+                var fname = nodePath.basename(filepath);
+                moduleProj.package.name = blockName;
+                moduleProj.package.description = "imported from " + fname;
+                moduleProj.design.board = profile.board;
 
-            var moduleProj = _default();
-            var fname = nodePath.basename(filepath);
-            moduleProj.package.name = blockName;
-            moduleProj.package.description = "imported from " + fname;
-            moduleProj.design.board = profile.board;
-
-            var parameterCount = moduleObj.parameter.length;
-            var inputCount = 0;
-            var outputCount = 0;
-            var portCount = 0;
-
-            for (var i in moduleObj.port) {
-              var pitem = moduleObj.port[i];
-              if (pitem.direction === 'input') {
-                inputCount++;
-              } else {
-                outputCount++;
-              }
-            }
-
-            portCount = Math.max(inputCount, outputCount);
-
-            // From blocks.js
-            var gsize = 8;
-            // Parameters
-            var HBlocksSize = parameterCount * 15 * gsize;
-            // + Padding
-            var HCodeSize = Math.max(HBlocksSize + 0, 360);
-
-            var HGraphSize = HCodeSize;
-            if (portCount > 0) {
-              // + Wiring + I/O
-              HGraphSize += (2+4) * 15 * gsize;
-            }
-
-            // Ports
-            var VBlocksSize = portCount * 10 * gsize;
-            // + Padding
-            var VCodeSize = Math.max(VBlocksSize + 0, 240);
-
-            var VGraphSize = VCodeSize;
-            if (parameterCount > 0) {
-              // + Wiring + Parameter
-              VGraphSize += (1+6) * 10 * gsize;
-            }
-
-            // Build Code block
-            var cblock = {
-              "id": joint.util.uuid(),
-              "type": "basic.code",
-              "data": {
-                "code": "//@include " + fname + "\n",
-                "params": [],
-                "ports": {
-                  "in": [],
-                  "out": []
-                }
-              },
-              "position": {
-                "x": -HCodeSize/2 - 12,
-                "y": -VCodeSize/2 - 8
-              },
-              "size": {
-                "width": HCodeSize,
-                "height": VCodeSize
-              }
-            };
-
-            // Build Parameter blocks
-            // Hsize 15 Vsize 10
-            var hPosition = {
-              "x": -HBlocksSize/2,
-              "y": -VGraphSize/2
-            };
-            var hStep = 15 * gsize;
-            for (var i in moduleObj.parameter) {
-              var paraObj = moduleObj.parameter[i];
-              var newParaPort = { "name": paraObj.name };
-              var newParaBlock = {
-                "id": joint.util.uuid(),
-                "type": "basic.constant",
-                "data": {
-                  "name": paraObj.name,
-                  "value": paraObj.value,
-                  "local": false
-                },
-              }
-              var newParaWire = {
-                "source": {
-                  "block": newParaBlock.id,
-                  "port": "constant-out"
-                },
-                "target": {
-                  "block": cblock.id,
-                  "port": paraObj.name
-                }
-              }
-              newParaBlock.position = utils.clone(hPosition);
-              hPosition.x += hStep;
-              cblock.data.params.push(newParaPort);
-              moduleProj.design.graph.blocks.push(newParaBlock);
-              moduleProj.design.graph.wires.push(newParaWire);
-            }
-            // Build Port blocks
-            // Hsize 15 Vsize 10
-            var vPositionI = {
-              "x": -HGraphSize/2,
-              "y": -VBlocksSize/2
-            };
-            var vPositionO = {
-              "x": HGraphSize/2 - hStep,
-              "y": -VBlocksSize/2
-            };
-            var vStepI = 10*gsize;
-            if (inputCount > 1) {
-              vStepI += (VBlocksSize - 10*gsize*inputCount) / (inputCount-1);
-            } else if(inputCount == 1) {
-              vPositionI.y = -10*gsize/2;
-            }
-            var vStepO = 10*gsize;
-            if (outputCount > 1) {
-              vStepO += (VBlocksSize - 10*gsize*outputCount) / (outputCount-1)
-            } else if(outputCount == 1) {
-              vPositionO.y = -10*gsize/2;
-            }
-            for (var i in moduleObj.port) {
-              var portObj = moduleObj.port[i];
-              var newPortPort = { "name": portObj.name };
-              var newPortBlock = {
-                "id": joint.util.uuid(),
-                "type": "basic." + ((portObj.direction === 'input') ? 'input' : 'output'),
-                "data": {
-                  "name": portObj.name
-                }
-              }
-              var newPortWire = null
-              if (portObj.direction === 'input') {
-                newPortWire = {
-                  "source": {
-                    "block": newPortBlock.id,
-                    "port": "out"
-                  },
-                  "target": {
-                    "block": cblock.id,
-                    "port": portObj.name
+                // Remove unused ports completely
+                var selPort = []
+                for (var p in moduleObj.port) {
+                  if (values.port[p]) {
+                    selPort.push(moduleObj.port[p]);
                   }
                 }
+                moduleObj.port = selPort;
+
+                var parameterCount = moduleObj.parameter.length;
+                var inputCount = 0;
+                var outputCount = 0;
+                var portCount = 0;
+
+                for (var i in moduleObj.port) {
+                  var pitem = moduleObj.port[i];
+                  if (pitem.direction === 'input') {
+                    inputCount++;
+                  } else {
+                    outputCount++;
+                  }
+                }
+
+                portCount = Math.max(inputCount, outputCount);
+
+                // From blocks.js
+                var gsize = 8;
+                // Parameters
+                var HBlocksSize = parameterCount * 15 * gsize;
+                // + Padding
+                var HCodeSize = Math.max(HBlocksSize + 0, 360);
+
+                var HGraphSize = HCodeSize;
+                if (portCount > 0) {
+                  // + Wiring + I/O
+                  HGraphSize += (2+4) * 15 * gsize;
+                }
+
+                // Ports
+                var VBlocksSize = portCount * 10 * gsize;
+                // + Padding
+                var VCodeSize = Math.max(VBlocksSize + 0, 240);
+
+                var VGraphSize = VCodeSize;
+                if (parameterCount > 0) {
+                  // + Wiring + Parameter
+                  VGraphSize += (1+6) * 10 * gsize;
+                }
+
+                // Build Code block
+                var cblock = {
+                  "id": joint.util.uuid(),
+                  "type": "basic.code",
+                  "data": {
+                    "code": "//@include " + fname + "\n",
+                    "params": [],
+                    "ports": {
+                      "in": [],
+                      "out": []
+                    }
+                  },
+                  "position": {
+                    "x": -HCodeSize/2 - 12,
+                    "y": -VCodeSize/2 - 8
+                  },
+                  "size": {
+                    "width": HCodeSize,
+                    "height": VCodeSize
+                  }
+                };
+
+                // Build Parameter blocks
+                // Hsize 15 Vsize 10
+                var hPosition = {
+                  "x": -HBlocksSize/2,
+                  "y": -VGraphSize/2
+                };
+                var hStep = 15 * gsize;
+                for (var i in moduleObj.parameter) {
+                  var paraObj = moduleObj.parameter[i];
+                  var newParaPort = { "name": paraObj.name };
+                  var newParaBlock = {
+                    "id": joint.util.uuid(),
+                    "type": "basic.constant",
+                    "data": {
+                      "name": paraObj.name,
+                      "value": paraObj.value,
+                      "local": !values.parameter[i]
+                    },
+                  }
+                  var newParaWire = {
+                    "source": {
+                      "block": newParaBlock.id,
+                      "port": "constant-out"
+                    },
+                    "target": {
+                      "block": cblock.id,
+                      "port": paraObj.name
+                    }
+                  }
+                  newParaBlock.position = utils.clone(hPosition);
+                  hPosition.x += hStep;
+                  cblock.data.params.push(newParaPort);
+                  moduleProj.design.graph.blocks.push(newParaBlock);
+                  moduleProj.design.graph.wires.push(newParaWire);
+                }
+                // Build Port blocks
+                // Hsize 15 Vsize 10
+                var vPositionI = {
+                  "x": -HGraphSize/2,
+                  "y": -VBlocksSize/2
+                };
+                var vPositionO = {
+                  "x": HGraphSize/2 - hStep,
+                  "y": -VBlocksSize/2
+                };
+                var vStepI = 10*gsize;
+                if (inputCount > 1) {
+                  vStepI += (VBlocksSize - 10*gsize*inputCount) / (inputCount-1);
+                } else if(inputCount == 1) {
+                  vPositionI.y = -10*gsize/2;
+                }
+                var vStepO = 10*gsize;
+                if (outputCount > 1) {
+                  vStepO += (VBlocksSize - 10*gsize*outputCount) / (outputCount-1)
+                } else if(outputCount == 1) {
+                  vPositionO.y = -10*gsize/2;
+                }
+                for (var i in moduleObj.port) {
+                  var portObj = moduleObj.port[i];
+                  var newPortPort = { "name": portObj.name };
+                  var newPortBlock = {
+                    "id": joint.util.uuid(),
+                    "type": "basic." + ((portObj.direction === 'input') ? 'input' : 'output'),
+                    "data": {
+                      "name": portObj.name
+                    }
+                  }
+                  var newPortWire = null
+                  if (portObj.direction === 'input') {
+                    newPortWire = {
+                      "source": {
+                        "block": newPortBlock.id,
+                        "port": "out"
+                      },
+                      "target": {
+                        "block": cblock.id,
+                        "port": portObj.name
+                      }
+                    }
+                    
+                    newPortBlock.position = utils.clone(vPositionI);
+                    vPositionI.y += vStepI;
+                  } else {
+                    newPortWire = {
+                      "source": {
+                        "block": cblock.id,
+                        "port": portObj.name
+                      },
+                      "target": {
+                        "block": newPortBlock.id,
+                        "port": "in"
+                      }
+                    }
+                    newPortBlock.position = utils.clone(vPositionO);
+                    vPositionO.y += vStepO;
+                  }
+
+                  // Add size info
+                  if (portObj.packed) {
+                    // var wsize = utils.evalRange(portObj.packed, env)
+                    // To eval
+                    var wsize = 1
+                    if (portObj.packed.match(/[^0-9\[\]:]/)) {
+                      newPortPort.dynamic = true;
+                      newPortBlock.data.dynamic = true;
+                    } else {
+                      var portnum = portObj.packed.substr(1, portObj.packed.length-2).split(':');
+                      wsize = Math.abs(portnum[0] - portnum[1]) + 1;
+                    }
+                    newPortPort.range = portObj.packed;
+                    newPortPort.size = wsize;
+                    newPortBlock.data.range = portObj.packed;
+                    newPortBlock.data.size = wsize;
+                    newPortWire.size = wsize;
+                  }
+                  if (portObj.direction === 'input') {
+                    cblock.data.ports.in.push(newPortPort);
+                  } else {
+                    cblock.data.ports.out.push(newPortPort);
+                  }
+                  moduleProj.design.graph.blocks.push(newPortBlock);
+                  moduleProj.design.graph.wires.push(newPortWire);
+                }
+                // Finishing dependency project
+                moduleProj.design.graph.blocks.push(cblock);
                 
-                newPortBlock.position = utils.clone(vPositionI);
-                vPositionI.y += vStepI;
-              } else {
-                newPortWire = {
-                  "source": {
-                    "block": cblock.id,
-                    "port": portObj.name
-                  },
-                  "target": {
-                    "block": newPortBlock.id,
-                    "port": "in"
-                  }
-                }
-                newPortBlock.position = utils.clone(vPositionO);
-                vPositionO.y += vStepO;
-              }
-
-              // Add size info
-              if (portObj.packed) {
-                // var wsize = utils.evalRange(portObj.packed, env)
-                // To eval
-                var wsize = 1
-                if (portObj.packed.match(/[^0-9\[\]:]/)) {
-                  newPortPort.dynamic = true;
-                  newPortBlock.data.dynamic = true;
-                } else {
-                  var portnum = portObj.packed.substr(1, portObj.packed.length-2).split(':');
-                  wsize = Math.abs(portnum[0] - portnum[1]) + 1;
-                }
-                newPortPort.range = portObj.packed;
-                newPortPort.size = wsize;
-                newPortBlock.data.range = portObj.packed;
-                newPortBlock.data.size = wsize;
-                newPortWire.size = wsize;
-              }
-              if (portObj.direction === 'input') {
-                cblock.data.ports.in.push(newPortPort);
-              } else {
-                cblock.data.ports.out.push(newPortPort);
-              }
-              moduleProj.design.graph.blocks.push(newPortBlock);
-              moduleProj.design.graph.wires.push(newPortWire);
-            }
-            // Finishing dependency project
-            moduleProj.design.graph.blocks.push(cblock);
-            
-            self.solveProject(moduleProj).then(function () {
-              // Add block to project
-              self.addBlock(moduleProj);
-              alertify.success(gettextCatalog.getString('Block {{name}} imported', { name: utils.bold(blockName) }));
+                self.solveProject(moduleProj).then(function () {
+                  // Add block to project
+                  self.addBlock(moduleProj);
+                  alertify.success(gettextCatalog.getString('Block {{name}} imported', { name: utils.bold(blockName) }));
+                });
+              });
             });
-
           });
           console.log(data);
         })

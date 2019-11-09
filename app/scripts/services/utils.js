@@ -609,6 +609,80 @@ angular.module('icestudio')
       }, 50);
     };
 
+    
+    this.portSelectionPrompt = function (moduledata, callback) {
+      var content = [];
+
+      var inputs = [];
+      var outputs = [];
+
+      for (var p in moduledata.port) {
+        var port = moduledata.port[p];
+        var ptcheck = '\
+          <div class="checkbox">\
+            <label><input type="checkbox" checked id="formport' + p + '"/>' + port.name + port.packed + '</label>\
+          </div>\
+        '
+        if (port.direction === 'input') {
+          inputs.push(ptcheck);
+        } else {
+          outputs.push(ptcheck);
+        }
+      }
+
+      content.push('<div>');
+      content.push('<p> Uncheck unwanted ports and parameters </p>');
+      content.push('<p>');
+
+      content.push('<div class="port-content">');
+      // Inputs
+      content.push('<div class="port-row">')
+      content.push('<p> Input(s): </p>')
+      content.push('<div class="port-scroll">');
+      content.push(inputs.join('\n'));
+      content.push('</div>'); // port-scroll
+      content.push('</div>'); // port-row
+      // Outputs
+      content.push('<div class="port-row">')
+      content.push('<p> Output(s): </p>')
+      content.push('<div class="port-scroll">');
+      content.push(outputs.join('\n'));
+      content.push('</div>'); // port-scroll
+      content.push('</div>'); // port-row
+      // Parameters
+      content.push('<div class="port-para-row">')
+      content.push('<p> Parameter(s): </p>')
+      content.push('<div class="port-scroll">');
+      for (var p in moduledata.parameter) {
+        content.push('\
+              <div class="checkbox">\
+                <label><input type="checkbox" checked id="formparam' + p + '"/>' + moduledata.parameter[p].name + '</label>\
+              </div>\
+            ');
+      }
+      content.push('</div>'); // port-scroll
+      content.push('</div>'); // port-row
+
+      content.push('</div>'); // port-content
+      content.push('</div>');
+      alertify.confirm(content.join('\n'))
+        .set('onok', function (evt) {
+          var values = {port:[], parameter:[]};
+          if (callback) {
+            for (var p in moduledata.port) {
+              values.port.push($('#formport' + p).prop('checked'));
+            }
+            for (var p in moduledata.parameter) {
+              values.parameter.push($('#formparam' + p).prop('checked'));
+            }
+            callback(evt, values);
+          }
+        })
+        .set('oncancel', function (/*evt*/) {
+        });
+    };
+
+
     this.projectinfoprompt = function (values, callback) {
       var i;
       var content = [];
