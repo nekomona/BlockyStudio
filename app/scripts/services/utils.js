@@ -1093,7 +1093,9 @@ angular.module('icestudio')
           cell.type === 'ice.Info' ||
           cell.type === 'ice.Constant' ||
           cell.type === 'ice.Memory' ||
-          cell.type === 'ice.BusInterface'
+          cell.type === 'ice.BusInterface' ||
+          cell.type === 'ice.BusInput' ||
+          cell.type === 'ice.BusOutput'
           ) {
           var block = {};
           block.id = cell.id;

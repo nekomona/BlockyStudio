@@ -511,7 +511,9 @@ angular.module('icestudio')
                     'ice.Output': ['ice.Generic', 'ice.Code'],
                     'ice.Constant': ['ice.Constant', 'ice.Memory'],
                     'ice.Memory': ['ice.Constant', 'ice.Memory'],
-                    'ice.BusInterface': ['ice.BusInterface']
+                    'ice.BusInterface': ['ice.BusInterface'],
+                    'ice.BusInput': ['ice.BusInput'],
+                    'ice.BusOutput': ['ice.BusOutput'],
                 }[lowerBlock.get('type')];
                 // Check if the upper block is a valid replacement
                 if (validReplacements.indexOf(upperBlock.get('type')) === -1) {
@@ -1303,6 +1305,7 @@ angular.module('icestudio')
                         case 'basic.code':
                         case 'basic.input': case 'basic.output':
                         case 'basic.busInterface':
+                        case 'basic.busInput': case 'basic.busOutput':
                             founded = true;
                             break;
 

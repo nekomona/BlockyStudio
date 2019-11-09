@@ -570,16 +570,23 @@ joint.shapes.ice.GenericView = joint.shapes.ice.ModelView.extend({
     // Render ports width
     var width = WIRE_WIDTH * state.zoom;
     this.$('.port-wire').css('stroke-width', width);
+    this.$('.port-wire').css('stroke', null);
     // Set buses
     for (i in leftPorts) {
       port = leftPorts[i];
-      if (port.size > 1) {
+      if (port.size && isNaN(port.size)) {
+        this.$('#port-wire-' + modelId + '-' + port.id).css('stroke-width', width * 5);
+        this.$('#port-wire-' + modelId + '-' + port.id).css('stroke', 'cornflowerblue');
+      } else if (port.size > 1) {
         this.$('#port-wire-' + modelId + '-' + port.id).css('stroke-width', width * 3);
       }
     }
     for (i in rightPorts) {
       port = rightPorts[i];
-      if (port.size > 1) {
+      if (port.size && isNaN(port.size)) {
+        this.$('#port-wire-' + modelId + '-' + port.id).css('stroke-width', width * 5);
+        this.$('#port-wire-' + modelId + '-' + port.id).css('stroke', 'cornflowerblue');
+      } else if (port.size > 1) {
         this.$('#port-wire-' + modelId + '-' + port.id).css('stroke-width', width * 3);
       }
     }
@@ -2231,6 +2238,140 @@ joint.shapes.ice.BusInterfaceView = joint.shapes.ice.ModelView.extend({
   }
 });
 
+// Bus I/O blocks
+
+joint.shapes.ice.BusInput = joint.shapes.ice.Model.extend({
+  defaults: joint.util.deepSupplement({
+    type: 'ice.BusInput',
+    size: {
+      width: 96,
+      height: 128
+    }
+  }, joint.shapes.ice.Model.prototype.defaults)
+});
+
+joint.shapes.ice.BusOutput = joint.shapes.ice.Model.extend({
+  defaults: joint.util.deepSupplement({
+    type: 'ice.BusOutput',
+    size: {
+      width: 96,
+      height: 128
+    }
+  }, joint.shapes.ice.Model.prototype.defaults)
+});
+
+joint.shapes.ice.BusIOView = joint.shapes.ice.ModelView.extend({
+
+  // Image comments:
+  // - img: fast load, no interactive
+  // - object: slow load, interactive
+  // - inline SVG: fast load, interactive, but...
+  //               old SVG files have no viewBox, therefore no properly resize
+  //               Inkscape adds this field saving as "Optimize SVG" ("Enable viewboxing")
+
+  template: '\
+  <div class="busio-block">\
+    <div class="busio-content">\
+      <label class="busio-name">Bus</label>\
+      <label class="busio-type">Bus</label>\
+      <div class="img-container"><img></div>\
+    </div>\
+  </div>\
+  ',
+
+
+  initialize: function () {
+    joint.shapes.ice.ModelView.prototype.initialize.apply(this, arguments);
+    
+    // Initialize content
+    this.initializeContent();
+
+    this.applyShape();
+  },
+
+  initializeContent: function () {
+    /*
+    var image = this.model.get('image');
+    var label = this.model.get('label');
+    var ports = this.model.get('leftPorts');
+
+    var imageSelector = this.$box.find('img');
+    var labelSelector = this.$box.find('label');
+
+    if (image) {
+      // Render img
+      imageSelector.attr('src', 'data:image/svg+xml,' + image);
+
+      // Render SVG
+      //imageSelector.append(decodeURI(image));
+
+      imageSelector.removeClass('hidden');
+      labelSelector.addClass('hidden');
+    }
+    else {
+      // Render label
+      labelSelector.html(label);
+      labelSelector.removeClass('hidden');
+      imageSelector.addClass('hidden');
+    }
+    */
+    this.contentSelector = this.$box.find('busio-content');
+  },
+
+  applyShape: function () {
+    var data = this.model.get('data');
+    var name = data.name;
+    var bustype = data.type;
+
+    var $labelname = this.$box.find('.busio-name');
+    var $labeltype = this.$box.find('.busio-type');
+
+    $labelname.text(name || '');
+    $labeltype.text(bustype || '');
+
+    this.model.attributes.size.height = 96;
+  },
+
+  apply: function () {
+    this.applyShape();
+    this.render();
+  },
+
+  update: function () {
+    this.renderPorts();
+    joint.dia.ElementView.prototype.update.apply(this, arguments);
+  },
+
+  updateBox: function () {
+    var bbox = this.model.getBBox();
+    var state = this.model.get('state');
+
+    // Render ports width
+    var width = WIRE_WIDTH * state.zoom;
+    this.$('.port-wire').css('stroke-width', width * 5);
+    this.$('.port-wire').css('stroke', 'cornflowerblue');
+    
+    // Render content
+    this.$box.find('.busio-content').css({
+      left: Math.round(bbox.width / 2.0 * (state.zoom - 1)),
+      top: Math.round(bbox.height / 2.0 * (state.zoom - 1)),
+      width: Math.round(bbox.width),
+      height: Math.round(bbox.height),
+      transform: 'scale(' + state.zoom + ')'
+    });
+
+    // Render block
+    this.$box.css({
+      left: bbox.x * state.zoom + state.pan.x,
+      top: bbox.y * state.zoom + state.pan.y,
+      width: bbox.width * state.zoom,
+      height: bbox.height * state.zoom
+    });
+  }
+});
+
+joint.shapes.ice.BusInputView = joint.shapes.ice.BusIOView;
+joint.shapes.ice.BusOutputView = joint.shapes.ice.BusIOView;
 
 // Custom wire
 

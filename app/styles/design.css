@@ -164,6 +164,11 @@ g {
   background: #C0DFEB;
   border-radius: 5px;
   border: 1px solid #777;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .generic-block .generic-content .clock {
@@ -227,13 +232,13 @@ g {
 
 .generic-block .generic-content label {
   display: block;
-  margin-top: 20px;
+  /*margin-top: 20px;*/
   text-align: center;
   font-size: 14px;
   color: #333;
   text-overflow: ellipsis;
   overflow: hidden;
-  white-space: nowrap;
+  /*white-space: nowrap;*/
 }
 
 .io-block {
@@ -589,6 +594,46 @@ g {
   text-overflow: ellipsis;
   overflow: hidden;
 }
+
+.busio-block {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  transition: opacity 0.2s;
+}
+
+.busio-block .busio-content {
+  position: absolute;
+  background: #E2FBC9;
+  border-radius: 5px;
+  border: 1px solid #777;
+  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.busio-block .busio-content .busio-name {
+  display: block;
+  text-align: center;
+  font-size: 14px;
+  font-weight: normal;
+  line-height: 18px;
+  color: #222;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.busio-block .busio-content .busio-type {
+  display: block;
+  text-align: center;
+  font-size: 14px;
+  color: #333;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
 
 /*
 .io-block .io-virtual-content .header {

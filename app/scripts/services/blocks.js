@@ -49,6 +49,12 @@ angular.module('icestudio')
         case 'basic.busInterface':
           newBasicBusInterface(callback);
           break;
+        case 'basic.busInput':
+          newBasicBusInput(callback);
+          break;
+        case 'basic.busOutput':
+          newBasicBusOutput(callback);
+          break;
         default:
           break;
       }
@@ -768,10 +774,8 @@ angular.module('icestudio')
         }
       ];
       utils.renderForm(formSpecs, function(evt, values) {
-        var awidth = values[0];
-        var dwidth = values[1];
-        var busdir = values[2];
-        var bustype = values[3];
+        var busdir = values[0];
+        var bustype = values[1];
         var busdesc = common.bus[bustype];
         
         if (resultAlert) {
@@ -796,6 +800,127 @@ angular.module('icestudio')
         }
       });
     }
+
+    function newBasicBusInput(callback) {
+      var blockInstance = {
+        id: null,
+        data: {},
+        type: 'basic.busInput',
+        position: { x: 0, y: 0 }
+      };
+
+      var busOption = [];
+      for (var b in common.bus) {
+        busOption.push({ value: b, label: common.bus[b].name });
+      }
+
+      var formSpecs = [
+        {
+          type: 'text',
+          title: gettextCatalog.getString('Enter the input bus name'),
+          value: ''
+        },
+        {
+          type: 'combobox',
+          label: gettextCatalog.getString('Bus type'),
+          value: busOption[0].value,
+          options: busOption
+        }
+      ];
+      utils.renderForm(formSpecs, function(evt, values) {
+        var name = values[0];
+        var bustype = values[1];
+        var busdesc = common.bus[bustype];
+        
+        if (resultAlert) {
+          resultAlert.dismiss(false);
+        }
+        // Validate values
+        if (!busdesc) {
+          evt.cancel = true;
+          resultAlert = alertify.warning(gettextCatalog.getString('Bus not found'));
+          return;
+        }
+        var parseName = utils.parseParamLabel(name, common.PATTERN_GLOBAL_PARAM_LABEL);
+        if (!parseName || !parseName.name) {
+          evt.cancel = true;
+          resultAlert = alertify.warning(gettextCatalog.getString('Wrong bus port name {{name}}', { name: name }));
+          return;
+        }
+        // Create blocks
+        var cells = [];
+        blockInstance.data = {
+          name: parseName.name,
+          type: bustype
+        };
+        cells.push(loadBasic(blockInstance));
+
+        if (callback) {
+          callback(cells);
+        }
+      });
+    }
+
+    function newBasicBusOutput(callback) {
+      var blockInstance = {
+        id: null,
+        data: {},
+        type: 'basic.busOutput',
+        position: { x: 0, y: 0 }
+      };
+
+      var busOption = [];
+      for (var b in common.bus) {
+        busOption.push({ value: b, label: common.bus[b].name });
+      }
+
+      var formSpecs = [
+        {
+          type: 'text',
+          title: gettextCatalog.getString('Enter the output bus name'),
+          value: ''
+        },
+        {
+          type: 'combobox',
+          label: gettextCatalog.getString('Bus type'),
+          value: busOption[0].value,
+          options: busOption
+        }
+      ];
+      utils.renderForm(formSpecs, function(evt, values) {
+        var name = values[0];
+        var bustype = values[1];
+        var busdesc = common.bus[bustype];
+        
+        if (resultAlert) {
+          resultAlert.dismiss(false);
+        }
+        // Validate values
+        if (!busdesc) {
+          evt.cancel = true;
+          resultAlert = alertify.warning(gettextCatalog.getString('Bus not found'));
+          return;
+        }
+        var parseName = utils.parseParamLabel(name, common.PATTERN_GLOBAL_PARAM_LABEL);
+        if (!parseName || !parseName.name) {
+          evt.cancel = true;
+          resultAlert = alertify.warning(gettextCatalog.getString('Wrong bus port name {{name}}', { name: name }));
+          return;
+        }
+        // Create blocks
+        var cells = [];
+        blockInstance.data = {
+          name: parseName.name,
+          type: bustype
+        };
+        cells.push(loadBasic(blockInstance));
+
+        if (callback) {
+          callback(cells);
+        }
+      });
+    }
+
     //-- Load
 
     function loadBasic(instance, disabled) {
@@ -818,6 +943,10 @@ angular.module('icestudio')
           return loadBasicInfo(instance, disabled);
         case 'basic.busInterface':
           return loadBasicBusInterface(instance, disabled);
+        case 'basic.busInput':
+          return loadBasicBusInput(instance, disabled);
+        case 'basic.busOutput':
+          return loadBasicBusOutput(instance, disabled);
         default:
           break;
       }
@@ -1044,8 +1173,7 @@ angular.module('icestudio')
             clock: item.data.clock
           });
         }
-
-          else if (item.type === 'basic.output') {
+        else if (item.type === 'basic.output') {
           rightPorts.push({
             id: item.id,
             name: item.data.name,
@@ -1061,6 +1189,22 @@ angular.module('icestudio')
               label: item.data.name
             });
           }
+        }
+        else if (item.type === 'basic.busInput') {
+          leftPorts.push({
+            id: item.id,
+            name: item.data.name,
+            label: item.data.name + ' ' + item.data.type,
+            size: item.data.type,
+          })
+        }
+        else if (item.type === 'basic.busOutput') {
+          rightPorts.push({
+            id: item.id,
+            name: item.data.name,
+            label: item.data.name + ' ' + item.data.type,
+            size: item.data.type,
+          })
         }
       }
 
@@ -1172,11 +1316,56 @@ angular.module('icestudio')
         position: instance.position,
         disabled: disabled,
         leftPorts: leftPorts,
-        rightPorts: rightPorts,
+        rightPorts: rightPorts
       });
 
       return cell;
     }
+
+    function loadBasicBusInput(instance, disabled) {
+      var data = instance.data;
+      
+      var rightPorts = [{
+        id: 'out',
+        name: '',
+        label: data.type + ' bus',
+        size: data.type
+      }];
+
+      var cell = new joint.shapes.ice.BusInput({
+        id: instance.id,
+        blockType: instance.type,
+        data: instance.data,
+        position: instance.position,
+        disabled: disabled,
+        rightPorts: rightPorts
+      });
+
+      return cell;
+    }
+
+    function loadBasicBusOutput(instance, disabled) {
+      var data = instance.data;
+
+      var leftPorts = [{
+        id: 'in',
+        name: '',
+        label: data.type + ' bus',
+        size: data.type
+      }];
+
+      var cell = new joint.shapes.ice.BusOutput({
+        id: instance.id,
+        blockType: instance.type,
+        data: instance.data,
+        position: instance.position,
+        disabled: disabled,
+        leftPorts: leftPorts
+      });
+
+      return cell;
+    }
+
     function loadWire(instance, source, target) {
 
       // Find selectors
@@ -1244,6 +1433,12 @@ angular.module('icestudio')
           break;
         case 'basic.busInterface':
           editBasicBusInterface(cellView, callback);
+          break;
+        case 'basic.busInput':
+          editBasicBusInput(cellView, callback);
+          break;
+        case 'basic.busOutput':
+          editBasicBusOutput(cellView, callback);
           break;
         default:
           break;
@@ -1856,10 +2051,8 @@ angular.module('icestudio')
         }
       ];
       utils.renderForm(formSpecs, function(evt, values) {
-        var awidth = values[0];
-        var dwidth = values[1];
-        var busdir = values[2];
-        var bustype = values[3];
+        var busdir = values[0];
+        var bustype = values[1];
         var busdesc = common.bus[bustype];
 
         if (resultAlert) {
@@ -1893,6 +2086,162 @@ angular.module('icestudio')
             graph.stopBatch('change');
             resultAlert = alertify.success(gettextCatalog.getString('Block updated'));
           }
+        }
+      });
+    }
+
+    function editBasicBusInput(cellView, callback) {
+      var graph = cellView.paper.model;
+      var block = cellView.model.attributes;
+
+      var busOption = [];
+      for (var b in common.bus) {
+        busOption.push({ value: b, label: common.bus[b].name });
+      }
+
+      var formSpecs = [
+        {
+          type: 'text',
+          title: gettextCatalog.getString('Enter the input bus name'),
+          value: block.data.name
+        },
+        {
+          type: 'combobox',
+          label: gettextCatalog.getString('Bus type'),
+          value: block.data.type,
+          options: busOption
+        }
+      ];
+      utils.renderForm(formSpecs, function(evt, values) {
+        var name = values[0];
+        var bustype = values[1];
+        var busdesc = common.bus[bustype];
+        
+        if (resultAlert) {
+          resultAlert.dismiss(false);
+        }
+        // Validate values
+        if (!busdesc) {
+          evt.cancel = true;
+          resultAlert = alertify.warning(gettextCatalog.getString('Bus not found'));
+          return;
+        }
+        var parseName = utils.parseParamLabel(name, common.PATTERN_GLOBAL_PARAM_LABEL);
+        if (!parseName || !parseName.name) {
+          evt.cancel = true;
+          resultAlert = alertify.warning(gettextCatalog.getString('Wrong bus port name {{name}}', { name: name }));
+          return;
+        }
+        // Replace block if bus type chaged
+        if ( (block.data.type || '') !== (bustype || '') ) {
+          var blockInstance = {
+            id: null,
+            data: {
+              name: name,
+              type: bustype
+            },
+            type: block.blockType,
+            position: {
+              x: block.position.x,
+              y: block.position.y
+            }
+          };
+          if (callback) {
+            graph.startBatch('change');
+            callback(loadBasicBusInput(blockInstance));
+            cellView.model.remove();
+            graph.stopBatch('change');
+            resultAlert = alertify.success(gettextCatalog.getString('Block updated'));
+          }
+        }
+        // Edit block if bus type not changed
+        if (block.data.name !== parseName.name) {
+          graph.startBatch('change');
+          var data = utils.clone(block.data);
+          data.name = parseName.name;
+          data.type = bustype;
+          cellView.model.set('data', data, { translateBy: cellView.model.id, tx: 0, ty: 0 });
+          graph.stopBatch('change');
+          cellView.apply();
+          resultAlert = alertify.success(gettextCatalog.getString('Block updated'));
+        }
+      });
+    }
+
+    function editBasicBusOutput(cellView, callback) {
+      var graph = cellView.paper.model;
+      var block = cellView.model.attributes;
+
+      var busOption = [];
+      for (var b in common.bus) {
+        busOption.push({ value: b, label: common.bus[b].name });
+      }
+
+      var formSpecs = [
+        {
+          type: 'text',
+          title: gettextCatalog.getString('Enter the output bus name'),
+          value: block.data.name
+        },
+        {
+          type: 'combobox',
+          label: gettextCatalog.getString('Bus type'),
+          value: block.data.type,
+          options: busOption
+        }
+      ];
+      utils.renderForm(formSpecs, function(evt, values) {
+        var name = values[0];
+        var bustype = values[1];
+        var busdesc = common.bus[bustype];
+        
+        if (resultAlert) {
+          resultAlert.dismiss(false);
+        }
+        // Validate values
+        if (!busdesc) {
+          evt.cancel = true;
+          resultAlert = alertify.warning(gettextCatalog.getString('Bus not found'));
+          return;
+        }
+        var parseName = utils.parseParamLabel(name, common.PATTERN_GLOBAL_PARAM_LABEL);
+        if (!parseName || !parseName.name) {
+          evt.cancel = true;
+          resultAlert = alertify.warning(gettextCatalog.getString('Wrong bus port name {{name}}', { name: name }));
+          return;
+        }
+        // Replace block if bus type chaged
+        if ( (block.data.type || '') !== (bustype || '') ) {
+          var blockInstance = {
+            id: null,
+            data: {
+              name: name,
+              type: bustype
+            },
+            type: block.blockType,
+            position: {
+              x: block.position.x,
+              y: block.position.y
+            }
+          };
+          if (callback) {
+            graph.startBatch('change');
+            callback(loadBasicBusOutput(blockInstance));
+            cellView.model.remove();
+            graph.stopBatch('change');
+            resultAlert = alertify.success(gettextCatalog.getString('Block updated'));
+          }
+        }
+        // Edit block if bus type not changed
+        if (block.data.name !== parseName.name) {
+          graph.startBatch('change');
+          var data = utils.clone(block.data);
+          data.name = parseName.name;
+          data.type = bustype;
+          cellView.model.set('data', data, { translateBy: cellView.model.id, tx: 0, ty: 0 });
+          graph.stopBatch('change');
+          cellView.apply();
+          resultAlert = alertify.success(gettextCatalog.getString('Block updated'));
         }
       });
     }

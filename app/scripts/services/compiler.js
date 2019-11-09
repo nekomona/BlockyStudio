@@ -125,7 +125,9 @@ angular.module('icestudio')
 
       if (portNames[name][block.id]) {
         return portNames[name][block.id];
-      } else if (block.type === 'basic.input' || block.type === 'basic.output') {
+      } else if (block.type === 'basic.input' || block.type === 'basic.output' ||
+                 block.type === 'basic.busInput' || block.type === 'basic.busOutput'
+                 ) {
         var nname = '';
         if (block.data.name) {
           nname = block.data.name;
@@ -140,6 +142,10 @@ angular.module('icestudio')
           }
         } else if(block.type === 'basic.output') {
           nname = 'out_' + i.toString();
+        } else if(block.type === 'basic.busInput') {
+          nname = 'bus_slave_' +i.toString() + '_';
+        } else if(block.type === 'basic.busOutput') {
+          nname = 'bus_master_' +i.toString() + '_';
         } else {
           nname = utils.digestId(block.id);
         }
@@ -174,6 +180,10 @@ angular.module('icestudio')
       } else {
         return '';
       }
+    }
+
+    function CheckTypeIsBus(size) {
+      return (typeof size !== 'undefined' && isNaN(size));
     }
 
     function header(comment, opt) {
@@ -282,6 +292,16 @@ angular.module('icestudio')
       return params;
     }
 
+    var lookupPortMonitorName = function(name, bustype) {
+      var bus = common.bus[bustype];
+      for (var pi in bus.ports) {
+        var p = bus.ports[pi];
+        if (name == p.name_master || name == p.name_slave || name == p.name_monitor) {
+          return p.name_monitor
+        }
+      }
+    }
+
     function getPorts(name, project) {
       var ports = {
         in: [],
@@ -303,6 +323,42 @@ angular.module('icestudio')
             name: pname,
             range: block.data.range ? block.data.range : ''
           });
+        }
+        else if (block.type === 'basic.busInput') {
+          var bustype = block.data.type;
+          var bus = common.bus[bustype];
+          for (var pi in bus.ports) {
+            var p = bus.ports[pi];
+            if (p.source === 'master') {
+              ports.in.push({
+                name: pname + p.name_master,
+                range: (p.size > 1) ? (['[', p.size-1, ':0]'].join('')) : '' 
+              })
+            } else {
+              ports.out.push({
+                name: pname + p.name_master,
+                range: (p.size > 1) ? (['[', p.size-1, ':0]'].join('')) : '' 
+              })
+            }
+          }
+        }
+        else if (block.type === 'basic.busOutput') {
+          var bustype = block.data.type;
+          var bus = common.bus[bustype];
+          for (var pi in bus.ports) {
+            var p = bus.ports[pi];
+            if (p.source === 'slave') {
+              ports.in.push({
+                name: pname + p.name_slave,
+                range: (p.size > 1) ? (['[', p.size-1, ':0]'].join('')) : '' 
+              })
+            } else {
+              ports.out.push({
+                name: pname + p.name_slave,
+                range: (p.size > 1) ? (['[', p.size-1, ':0]'].join('')) : '' 
+              })
+            }
+          }
         }
       }
 
@@ -364,20 +420,11 @@ angular.module('icestudio')
                 }
               }
             }
+            /*
             if( lin.type === 'basic.busInterface' ) {
               var busMasterId = '';
               var wireConnected = [];
               var bustype = lin.data.type;
-
-              var lookupPortMonitorName = function(name) {
-                var bus = common.bus[bustype];
-                for (var pi in bus.ports) {
-                  var p = bus.ports[pi];
-                  if (name == p.name_master || name == p.name_slave || name == p.name_monitor) {
-                    return p.name_monitor
-                  }
-                }
-              }
 
               if( lin.data.direction === 'master' ) {
                 busMasterId = lin.id;
@@ -399,7 +446,7 @@ angular.module('icestudio')
               for(var vwi in wireConnected) {
                 vw = wireConnected[vwi];
                 if(vw.source.block === lin.id){
-                  var vwireName = busMasterId + lookupPortMonitorName(vw.source.port);
+                  var vwireName = busMasterId + lookupPortMonitorName(vw.source.port, bustype);
                   if(typeof vwiresLut[vwireName] === 'undefined'){
                       vwiresLut[vwireName]={source:[],target:[]};
                   }
@@ -409,7 +456,7 @@ angular.module('icestudio')
                   vwiresLut[vwireName].target.push(twire);
                 }
                 if(vw.target.block === lin.id){
-                  var vwireName = busMasterId + lookupPortMonitorName(vw.target.port);
+                  var vwireName = busMasterId + lookupPortMonitorName(vw.target.port, bustype);
                   if(typeof vwiresLut[vwireName] === 'undefined'){
                       vwiresLut[vwireName]={source:[],target:[]};
                   }
@@ -419,8 +466,191 @@ angular.module('icestudio')
                 }
               }
             }
+            */
           }//for lin
         }// if typeof....
+        
+        // Remove bus interface and replace it with virtual wires
+        var procBusInterface = function (block, busname, bustype) {
+          for(var vwi in graph.wires) {
+            var vw = graph.wires[vwi];
+            if(vw.source.block === block.id){
+              var vwireName = busname + lookupPortMonitorName(vw.source.port, bustype);
+              if(typeof vwiresLut[vwireName] === 'undefined'){
+                  vwiresLut[vwireName]={source:[],target:[]};
+              }
+              var twire=vw.target;
+              twire.size=vw.size;
+              vwiresLut[vwireName].target.push(twire);
+            }
+            if(vw.target.block === block.id){
+              var vwireName = busname + lookupPortMonitorName(vw.target.port, bustype);
+              if(typeof vwiresLut[vwireName] === 'undefined'){
+                  vwiresLut[vwireName]={source:[],target:[]};
+              }
+              var twire=vw.source;
+              twire.size=vw.size;
+              vwiresLut[vwireName].source.push(twire);
+            }
+          }
+        };
+
+        // Let virtual wires connect to this block
+        var procBusInput = function (block, busname, bustype) {
+          var bus = common.bus[bustype];
+          for (var pi in bus.ports) {
+            var p = bus.ports[pi];
+            var vwireName = busname + p.name_monitor;
+            if (typeof vwiresLut[vwireName] === 'undefined') {
+              vwiresLut[vwireName]={source:[],target:[]};
+            }
+            if (p.source === 'master') {
+              vwiresLut[vwireName].source.push({
+                block: block.id,
+                port: p.name_master,
+                size: p.size 
+              });
+            } else {
+              vwiresLut[vwireName].target.push({
+                block: block.id,
+                port: p.name_master,
+                size: p.size 
+              });  
+            }
+          }
+        };
+
+        // Let virtual wires connect to this block
+        var procBusOutput = function (block, busname, bustype) {
+          var bus = common.bus[bustype];
+          for (var pi in bus.ports) {
+            var p = bus.ports[pi];
+            var vwireName = busname + p.name_monitor;
+            if (typeof vwiresLut[vwireName] === 'undefined') {
+              vwiresLut[vwireName]={source:[],target:[]};
+            }
+            if (p.source === 'slave') {
+              vwiresLut[vwireName].source.push({
+                block: block.id,
+                port: p.name_slave,
+                size: p.size 
+              });
+            } else {
+              vwiresLut[vwireName].target.push({
+                block: block.id,
+                port: p.name_slave,
+                size: p.size 
+              });  
+            }
+          }
+        };
+
+        // Let virtual wires connect to this block
+        var procBusGenericInput = function (block, busname, bustype, portid) {
+          var bus = common.bus[bustype];
+          
+          var moduleName = project.nameList.moduleNames[block.type];
+          var portName = project.nameList.portNames[moduleName][portid];
+
+          for (var pi in bus.ports) {
+            var p = bus.ports[pi];
+            var vwireName = busname + p.name_monitor;
+            if (typeof vwiresLut[vwireName] === 'undefined') {
+              vwiresLut[vwireName]={source:[],target:[]};
+            }
+            if (p.source === 'slave') {
+              vwiresLut[vwireName].source.push({
+                block: block.id,
+                port: portName + p.name_slave,
+                size: p.size,
+                finalname: true
+              });
+            } else {
+              vwiresLut[vwireName].target.push({
+                block: block.id,
+                port: portName + p.name_slave,
+                size: p.size,
+                finalname: true
+              });  
+            }
+          }
+        };
+
+        // Let virtual wires connect to this block
+        var procBusGenericOutput = function (block, busname, bustype, portid) {
+          var bus = common.bus[bustype];
+          
+          var moduleName = project.nameList.moduleNames[block.type];
+          var portName = project.nameList.portNames[moduleName][portid];
+
+          for (var pi in bus.ports) {
+            var p = bus.ports[pi];
+            var vwireName = busname + p.name_monitor;
+            if (typeof vwiresLut[vwireName] === 'undefined') {
+              vwiresLut[vwireName]={source:[],target:[]};
+            }
+            if (p.source === 'master') {
+              vwiresLut[vwireName].source.push({
+                block: block.id,
+                port: portName + p.name_master,
+                size: p.size,
+                finalname: true
+              });
+            } else {
+              vwiresLut[vwireName].target.push({
+                block: block.id,
+                port: portName + p.name_master,
+                size: p.size,
+                finalname: true 
+              });  
+            }
+          }
+        };
+
+        // Use virtual wire generation per bus rather than per block
+        // businterface -> virtual wire
+        // busport -> virtual wire to virtual port
+        // generic -> translated port
+        for(widx in graph.wires) {
+          vw = graph.wires[widx];
+          if (CheckTypeIsBus(vw.size)) {
+            // Bus wire
+            var busname = vw.source.block + vw.source.port;
+            var bustype = vw.size;
+            var sourceBlock = undefined;
+            var targetBlock = undefined;
+
+            for (var b in graph.blocks) {
+              var block = graph.blocks[b];
+              if (block.id === vw.source.block) {
+                sourceBlock = block;
+              }
+              if (block.id === vw.target.block) {
+                targetBlock = block;
+              }
+            }
+
+            if (sourceBlock.type === 'basic.busInterface') {
+              procBusInterface(sourceBlock, busname, bustype);
+            } else if (sourceBlock.type === 'basic.busInput') {
+              procBusInput(sourceBlock, busname, bustype);
+            } else if (sourceBlock.type === 'basic.busOutput') {
+              procBusOutput(sourceBlock, busname, bustype);
+            } else {
+              procBusGenericOutput(sourceBlock, busname, bustype, vw.source.port);
+            }
+
+            if (targetBlock.type === 'basic.busInterface') {
+              procBusInterface(targetBlock, busname, bustype);
+            } else if (targetBlock.type === 'basic.busInput') {
+              procBusInput(targetBlock, busname, bustype);
+            } else if (targetBlock.type === 'basic.busOutput') {
+              procBusOutput(targetBlock, busname, bustype);
+            } else {
+              procBusGenericInput(targetBlock, busname, bustype, vw.target.port);
+            }
+          }
+        }
 
         //Create virtual wires
         for(widx in vwiresLut){
@@ -462,8 +692,7 @@ angular.module('icestudio')
                 graph.wires[wi].target.port  === 'outlabel' ||
                 graph.wires[wi].source.port === 'inlabel' ||
                 graph.wires[wi].target.port === 'inlabel' ||
-                getBlockById(graph.wires[wi].source.block).type === 'basic.busInterface' ||
-                getBlockById(graph.wires[wi].target.block).type === 'basic.busInterface'
+                CheckTypeIsBus(graph.wires[wi].size)
                 ){
 
                     graph.wiresVirtual.push(graph.wires[wi]);
@@ -515,6 +744,18 @@ angular.module('icestudio')
                 connections.assign.push('assign ' + getPortName(name, block, i, project.nameList) + ' = w' + w + ';');
                 wireSource[getPortName(name, block, i, project.nameList)] = 'w' + w;
               }
+            }
+          }
+          else if (block.type === 'basic.busInput' || block.type === 'basic.busOutput') {
+            if (wire.source.block === block.id) {
+              var portname = getPortName(name, block, i, project.nameList) + wire.source.port;
+              connections.assign.push('assign w' + w + ' = ' + portname + ';');
+              wireSource[w] = portname;
+            }
+            if (wire.target.block === block.id) {
+              var portname = getPortName(name, block, i, project.nameList) + wire.target.port;
+              connections.assign.push('assign ' + portname + ' = w' + w + ';');
+              wireSource[portname] = 'w' + w;
             }
           }
         }
@@ -587,7 +828,9 @@ angular.module('icestudio')
             block.type !== 'basic.info' &&
             block.type !== 'basic.inputLabel' &&
             block.type !== 'basic.outputLabel' &&
-            block.type !== 'basic.busInterface'
+            block.type !== 'basic.busInterface' &&
+            block.type !== 'basic.busInput' &&
+            block.type !== 'basic.busOutput'
             ) {
 
           // Header
@@ -631,12 +874,12 @@ angular.module('icestudio')
           for (w in graph.wires) {
             wire = graph.wires[w];
             if (block.id === wire.source.block) {
-              connectPort(wire.source.port, portsNames, ports, block, nameList);
+              connectPort(wire.source, portsNames, ports, block, nameList);
             }
             if (block.id === wire.target.block) {
               if (wire.source.port !== 'constant-out' &&
                   wire.source.port !== 'memory-out') {
-                connectPort(wire.target.port, portsNames, ports, block, nameList);
+                connectPort(wire.target, portsNames, ports, block, nameList);
               }
             }
           }
@@ -649,9 +892,10 @@ angular.module('icestudio')
         }
       }
 
-      function connectPort(portName, portsNames, ports, block, nameList) {
-        if (portName) {
-          if (block.type !== 'basic.code') {
+      function connectPort(port, portsNames, ports, block, nameList) {
+        if (port) {
+          var portName = port.port;
+          if (!port.finalname && block.type !== 'basic.code') {
             var moduleName = nameList.moduleNames[block.type];
             portName = nameList.portNames[moduleName][portName];
             // portName = utils.digestId(portName);
