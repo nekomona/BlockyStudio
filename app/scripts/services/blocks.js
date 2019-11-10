@@ -1561,6 +1561,7 @@ angular.module('icestudio')
           break;
         case 'basic.inout':
           editBasicInout(cellView, callback);
+          break;
         case 'basic.outputLabel':
           editBasicOutputLabel(cellView, callback);
           break;
