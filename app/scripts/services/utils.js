@@ -1163,6 +1163,7 @@ angular.module('icestudio')
         if (cell.type === 'ice.Generic' ||
           cell.type === 'ice.Input' ||
           cell.type === 'ice.Output' ||
+          cell.type === 'ice.Inout' ||
           cell.type === 'ice.Code' ||
           cell.type === 'ice.Info' ||
           cell.type === 'ice.Constant' ||

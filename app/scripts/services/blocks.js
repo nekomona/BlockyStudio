@@ -28,6 +28,9 @@ angular.module('icestudio')
         case 'basic.output':
           newBasicOutput(callback);
           break;
+        case 'basic.inout':
+          newBasicInout(callback);
+          break;
         case 'basic.outputLabel':
           newBasicOutputLabel(callback);
           break;
@@ -523,7 +526,7 @@ angular.module('icestudio')
           code: '',
           name: '',
           params: [],
-          ports: { in: [], out: [] }
+          ports: { in: [], out: [], inout: [] }
         },
         type: 'basic.code',
         position: { x: 0, y: 0 },
@@ -554,13 +557,19 @@ angular.module('icestudio')
             outPorts.push(port.name + (port.range || ''));
           }
           defaultValues[2] = outPorts.join(' , ');
+          var inoutPorts = [];
+          for (index in block.data.ports.inout) {
+            port = block.data.ports.inout[index];
+            inoutPorts.push(port.name + (port.range || ''));
+          }
+          defaultValues[3] = inoutPorts.join(' , ');
         }
         if (block.data.params) {
           var params = [];
           for (index in block.data.params) {
             params.push(block.data.params[index].name);
           }
-          defaultValues[3] = params.join(' , ');
+          defaultValues[4] = params.join(' , ');
         }
       }
       var formSpecs = [
@@ -581,15 +590,21 @@ angular.module('icestudio')
         },
         {
           type: 'text',
-          title: gettextCatalog.getString('Enter the parameters'),
+          title: gettextCatalog.getString('Enter the inout ports'),
           value: defaultValues[3]
+        },
+        {
+          type: 'text',
+          title: gettextCatalog.getString('Enter the parameters'),
+          value: defaultValues[4]
         }
       ];
       utils.renderForm(formSpecs, function(evt, values) {
         var inputName = values[0];
         var inPorts = values[1].replace(/\s*,\s*/g, ',').split(',');
         var outPorts = values[2].replace(/\s*,\s*/g, ',').split(',');
-        var params = values[3].replace(/\s*,\s*/g, ',').split(',');
+        var inoutPorts = values[3].replace(/\s*,\s*/g, ',').split(',');
+        var params = values[4].replace(/\s*,\s*/g, ',').split(',');
         var allNames = [];
         if (resultAlert) {
           resultAlert.dismiss(false);
@@ -639,6 +654,21 @@ angular.module('icestudio')
             }
           }
         }
+        var io, inoutPortInfo, inoutPortInfos = [];
+        for (io in inoutPorts) {
+          if (inoutPorts[io]) {
+            inoutPortInfo = utils.parsePortLabel(inoutPorts[io], common.PATTERN_PORT_LABEL);
+            if (inoutPortInfo && inoutPortInfo.name) {
+              evt.cancel = false;
+              inoutPortInfos.push(inoutPortInfo);
+            }
+            else {
+              evt.cancel = true;
+              resultAlert = alertify.warning(gettextCatalog.getString('Wrong port name {{name}}', { name: inoutPorts[io] }));
+              return;
+            }
+          }
+        }
         var p, paramInfo, paramInfos = [];
         for (p in params) {
           if (params[p]) {
@@ -678,6 +708,18 @@ angular.module('icestudio')
               size: (pins.length > 1) ? pins.length : undefined
             });
             allNames.push(outPortInfos[o].name);
+          }
+        }
+        blockInstance.data.ports.inout = [];
+        for (io in inoutPortInfos) {
+          if (inoutPortInfos[io]) {
+            pins = getPins(inoutPortInfos[io]);
+            blockInstance.data.ports.inout.push({
+              name: inoutPortInfos[io].name,
+              range: inoutPortInfos[io].rangestr,
+              size: (pins.length > 1) ? pins.length : undefined
+            });
+            allNames.push(inoutPortInfos[io].name);
           }
         }
         blockInstance.data.params = [];
@@ -921,6 +963,67 @@ angular.module('icestudio')
       });
     }
 
+    function newBasicInout(callback) {
+      var blockInstance = {
+        id: null,
+        data: {},
+        type: 'basic.inout',
+        position: { x: 0, y: 0 }
+      };
+      var formSpecs = [
+        {
+          type: 'text',
+          title: gettextCatalog.getString('Enter the inout blocks'),
+          value: ''
+        },
+        {
+          type: 'checkbox',
+          label: gettextCatalog.getString('FPGA pin'),
+          value: true
+        }
+      ];
+      utils.renderForm(formSpecs, function(evt, values) {
+        var labels = values[0].replace(/\s*,\s*/g, ',').split(',');
+        var virtual = !values[1];
+        if (resultAlert) {
+          resultAlert.dismiss(false);
+        }
+        // Validate values
+        var portInfo, portInfos = [];
+        for (var l in labels) {
+          portInfo = utils.parsePortLabel(labels[l], common.PATTERN_GLOBAL_PORT_LABEL);
+          if (portInfo) {
+            evt.cancel = false;
+            portInfos.push(portInfo);
+          }
+          else {
+            evt.cancel = true;
+            resultAlert = alertify.warning(gettextCatalog.getString('Wrong block name {{name}}', { name: labels[l] }));
+            return;
+          }
+        }
+        // Create blocks
+        var cells = [];
+        for (var p in portInfos) {
+          portInfo = portInfos[p];
+          var pins = getPins(portInfo);
+          blockInstance.data = {
+            name: portInfo.name,
+            range: portInfo.rangestr,
+            pins: pins,
+            virtual: virtual,
+            inout: true
+          };
+          cells.push(loadBasic(blockInstance));
+          // Next block position
+          blockInstance.position.y += (virtual ? 10 : (6 + 4 * pins.length)) * gridsize;
+        }
+        if (callback) {
+          callback(cells);
+        }
+      });
+    }
+
     //-- Load
 
     function loadBasic(instance, disabled) {
@@ -929,6 +1032,8 @@ angular.module('icestudio')
           return loadBasicInput(instance, disabled);
         case 'basic.output':
           return loadBasicOutput(instance, disabled);
+        case 'basic.inout':
+          return loadBasicInout(instance, disabled);
         case 'basic.outputLabel':
           return loadBasicOutputLabel(instance, disabled);
         case 'basic.inputLabel':
@@ -1105,6 +1210,17 @@ angular.module('icestudio')
         });
       }
 
+      for (var io in instance.data.ports.inout) {
+        port = instance.data.ports.inout[io];
+        leftPorts.push({
+          id: port.name,
+          name: port.name,
+          label: port.name + (port.range || ''),
+          size: port.size || 1,
+          inout: true
+        });
+      }
+
       for (var p in instance.data.params) {
         port = instance.data.params[p];
         topPorts.push({
@@ -1205,6 +1321,15 @@ angular.module('icestudio')
             label: item.data.name + ' ' + item.data.type,
             size: item.data.type,
           })
+        }
+        else if (item.type === 'basic.inout') {
+          leftPorts.push({
+            id: item.id,
+            name: item.data.name,
+            label: item.data.name + (item.data.range || ''),
+            size: item.data.pins ? item.data.pins.length : (item.data.size || 1),
+            inout: true
+          });
         }
       }
 
@@ -1366,6 +1491,27 @@ angular.module('icestudio')
       return cell;
     }
 
+    function loadBasicInout(instance, disabled) {
+      var data = instance.data;
+      var rightPorts = [{
+        id: 'out',
+        name: '',
+        label: '',
+        size: data.pins ? data.pins.length : (data.size || 1)
+      }];
+
+      var cell = new joint.shapes.ice.Inout({
+        id: instance.id,
+        blockType: instance.type,
+        data: instance.data,
+        position: instance.position,
+        disabled: disabled,
+        rightPorts: rightPorts,
+        choices: common.pinoutInoutHTML
+      });
+      return cell;
+    }
+
     function loadWire(instance, source, target) {
 
       // Find selectors
@@ -1413,6 +1559,8 @@ angular.module('icestudio')
         case 'basic.output':
           editBasicOutput(cellView, callback);
           break;
+        case 'basic.inout':
+          editBasicInout(cellView, callback);
         case 'basic.outputLabel':
           editBasicOutputLabel(cellView, callback);
           break;
@@ -2242,6 +2390,89 @@ angular.module('icestudio')
           graph.stopBatch('change');
           cellView.apply();
           resultAlert = alertify.success(gettextCatalog.getString('Block updated'));
+        }
+      });
+    }
+
+    function editBasicInout(cellView, callback) {
+      var graph = cellView.paper.model;
+      var block = cellView.model.attributes;
+      var formSpecs = [
+        {
+          type: 'text',
+          title: gettextCatalog.getString('Update the block name'),
+          value: block.data.name + (block.data.range || '')
+        },
+        {
+          type: 'checkbox',
+          label: gettextCatalog.getString('FPGA pin'),
+          value: !block.data.virtual
+        }
+      ];
+      utils.renderForm(formSpecs, function(evt, values) {
+        var oldSize, newSize, offset = 0;
+        var label = values[0];
+        var virtual = !values[1];
+        if (resultAlert) {
+          resultAlert.dismiss(false);
+        }
+        // Validate values
+        var portInfo = utils.parsePortLabel(label, common.PATTERN_GLOBAL_PORT_LABEL);
+        if (portInfo) {
+          evt.cancel = false;
+          if ((block.data.range || '') !==
+              (portInfo.rangestr || '')) {
+            var pins = getPins(portInfo);
+            oldSize = block.data.virtual ? 1 : (block.data.pins ? block.data.pins.length : 1);
+            newSize = virtual ? 1 : (pins ? pins.length : 1);
+            // Update block position when size changes
+            offset = 16 * (oldSize - newSize);
+            // Create new block
+            var blockInstance = {
+              id: null,
+              data: {
+                name: portInfo.name,
+                range: portInfo.rangestr,
+                pins: pins,
+                virtual: virtual,
+                inout: true
+              },
+              type: block.blockType,
+              position: {
+                x: block.position.x,
+                y: block.position.y + offset
+              }
+            };
+            if (callback) {
+              graph.startBatch('change');
+              callback(loadBasic(blockInstance));
+              cellView.model.remove();
+              graph.stopBatch('change');
+              resultAlert = alertify.success(gettextCatalog.getString('Block updated'));
+            }
+          }
+          else if (block.data.name !== portInfo.name ||
+                   block.data.virtual !== virtual) {
+            var size = block.data.pins ? block.data.pins.length : 1;
+            oldSize = block.data.virtual ? 1 : size;
+            newSize = virtual ? 1 : size;
+            // Update block position when size changes
+            offset = 16 * (oldSize - newSize);
+            // Edit block
+            graph.startBatch('change');
+            var data = utils.clone(block.data);
+            data.name = portInfo.name;
+            data.virtual = virtual;
+            cellView.model.set('data', data, { translateBy: cellView.model.id, tx: 0, ty: -offset });
+            cellView.model.translate(0, offset);
+            graph.stopBatch('change');
+            cellView.apply();
+            resultAlert = alertify.success(gettextCatalog.getString('Block updated'));
+          }
+        }
+        else {
+          evt.cancel = true;
+          resultAlert = alertify.warning(gettextCatalog.getString('Wrong block name {{name}}', { name: label }));
         }
       });
     }

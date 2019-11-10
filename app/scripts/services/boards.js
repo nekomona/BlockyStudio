@@ -71,6 +71,7 @@ angular.module('icestudio')
       common.selectedBoard = selectedBoard;
       common.pinoutInputHTML = generateHTMLOptions(common.selectedBoard.pinout, 'input');
       common.pinoutOutputHTML = generateHTMLOptions(common.selectedBoard.pinout, 'output');
+      common.pinoutInoutHTML = generateHTMLOptions(common.selectedBoard.pinout, 'inout');
       utils.rootScopeSafeApply();
       return common.selectedBoard;
     };

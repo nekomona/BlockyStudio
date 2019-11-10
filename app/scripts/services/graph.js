@@ -509,6 +509,7 @@ angular.module('icestudio')
                     'ice.Code': ['ice.Generic', 'ice.Code', 'ice.Input', 'ice.Output'],
                     'ice.Input': ['ice.Generic', 'ice.Code'],
                     'ice.Output': ['ice.Generic', 'ice.Code'],
+                    'ice.Inout': ['ice.Generic', 'ice.Code'],
                     'ice.Constant': ['ice.Constant', 'ice.Memory'],
                     'ice.Memory': ['ice.Constant', 'ice.Memory'],
                     'ice.BusInterface': ['ice.BusInterface'],
@@ -1303,7 +1304,7 @@ angular.module('icestudio')
                         case 'basic.constant':
                         case 'basic.outputLabel': case 'basic.inputLabel':
                         case 'basic.code':
-                        case 'basic.input': case 'basic.output':
+                        case 'basic.input': case 'basic.output': case 'basic.inout':
                         case 'basic.busInterface':
                         case 'basic.busInput': case 'basic.busOutput':
                             founded = true;

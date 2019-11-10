@@ -170,6 +170,10 @@ joint.shapes.ice.Model = joint.shapes.basic.Generic.extend({
       ref: '.body'
     };
 
+    if (port.inout) {
+      port.label = ['<- ', port.label, ' ->'].join('');
+    }
+
     attrs[portLabelSelector] = {
       text: port.label
     };
@@ -647,6 +651,16 @@ joint.shapes.ice.Output = joint.shapes.ice.Model.extend({
   }, joint.shapes.ice.Model.prototype.defaults)
 });
 
+joint.shapes.ice.Inout = joint.shapes.ice.Model.extend({
+  defaults: joint.util.deepSupplement({
+    type: 'ice.Inout',
+    size: {
+      width: 96,
+      height: 64
+    }
+  }, joint.shapes.ice.Model.prototype.defaults)
+});
+
 joint.shapes.ice.InputLabel = joint.shapes.ice.Model.extend({
   markup: '<g class="rotatable">\
              <g class="scalable">\
@@ -838,6 +852,10 @@ joint.shapes.ice.IOView = joint.shapes.ice.ModelView.extend({
     var virtual = data.virtual || this.model.get('disabled') || subModuleActive;
     var $label = this.$box.find('label');
 
+    if (data.inout) {
+      name = ['<- ', name , ' ->'].join('');
+    }
+
     $label.text(name || '');
 
     if (virtual) {
@@ -987,6 +1005,7 @@ joint.shapes.ice.IOView = joint.shapes.ice.ModelView.extend({
 
 joint.shapes.ice.InputView = joint.shapes.ice.IOView;
 joint.shapes.ice.OutputView = joint.shapes.ice.IOView;
+joint.shapes.ice.InoutView = joint.shapes.ice.IOView;
 
 
 // Constant block

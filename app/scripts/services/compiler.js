@@ -125,7 +125,7 @@ angular.module('icestudio')
 
       if (portNames[name][block.id]) {
         return portNames[name][block.id];
-      } else if (block.type === 'basic.input' || block.type === 'basic.output' ||
+      } else if (block.type === 'basic.input' || block.type === 'basic.output' || block.type === 'basic.inout' ||
                  block.type === 'basic.busInput' || block.type === 'basic.busOutput'
                  ) {
         var nname = '';
@@ -142,6 +142,8 @@ angular.module('icestudio')
           }
         } else if(block.type === 'basic.output') {
           nname = 'out_' + i.toString();
+        } else if(block.type === 'basic.inout') {
+          nname = 'inout_' + i.toString();
         } else if(block.type === 'basic.busInput') {
           nname = 'bus_slave_' +i.toString() + '_';
         } else if(block.type === 'basic.busOutput') {
@@ -234,6 +236,11 @@ angular.module('icestudio')
           var _out = data.ports.out[o];
           ports.push(' output ' + (_out.range ? (_out.range + ' ') : '') + _out.name);
         }
+        for (var io in data.ports.inout) {
+          var _inout = data.ports.inout[io];
+          ports.push(' inout ' + (_inout.range ? (_inout.range + ' ') : '') + _inout.name);
+        }
+
 
         if (ports.length > 0) {
           code += ' (\n';
@@ -305,7 +312,8 @@ angular.module('icestudio')
     function getPorts(name, project) {
       var ports = {
         in: [],
-        out: []
+        out: [],
+        inout: []
       };
       var graph = project.design.graph;
 
@@ -320,6 +328,12 @@ angular.module('icestudio')
         }
         else if (block.type === 'basic.output') {
           ports.out.push({
+            name: pname,
+            range: block.data.range ? block.data.range : ''
+          });
+        }
+        else if (block.type === 'basic.inout') {
+          ports.inout.push({
             name: pname,
             range: block.data.range ? block.data.range : ''
           });
@@ -420,53 +434,6 @@ angular.module('icestudio')
                 }
               }
             }
-            /*
-            if( lin.type === 'basic.busInterface' ) {
-              var busMasterId = '';
-              var wireConnected = [];
-              var bustype = lin.data.type;
-
-              if( lin.data.direction === 'master' ) {
-                busMasterId = lin.id;
-              }
-              for(widx in graph.wires){
-                vw=graph.wires[widx];
-                if(vw.size && isNaN(vw.size)) {
-                  // Bus
-                  if(vw.target.block === lin.id) {
-                    busMasterId = vw.source.block;
-                  }
-                } else {
-                  if(vw.source.block === lin.id ||
-                    vw.target.block === lin.id) {
-                      wireConnected.push(vw);
-                  } 
-                }
-              }
-              for(var vwi in wireConnected) {
-                vw = wireConnected[vwi];
-                if(vw.source.block === lin.id){
-                  var vwireName = busMasterId + lookupPortMonitorName(vw.source.port, bustype);
-                  if(typeof vwiresLut[vwireName] === 'undefined'){
-                      vwiresLut[vwireName]={source:[],target:[]};
-                  }
-
-                  twire=vw.target;
-                  twire.size=vw.size;
-                  vwiresLut[vwireName].target.push(twire);
-                }
-                if(vw.target.block === lin.id){
-                  var vwireName = busMasterId + lookupPortMonitorName(vw.target.port, bustype);
-                  if(typeof vwiresLut[vwireName] === 'undefined'){
-                      vwiresLut[vwireName]={source:[],target:[]};
-                  }
-                  twire=vw.source;
-                  twire.size=vw.size;
-                  vwiresLut[vwireName].source.push(twire);
-                }
-              }
-            }
-            */
           }//for lin
         }// if typeof....
         
@@ -748,6 +715,12 @@ angular.module('icestudio')
               }
             }
           }
+          else if (block.type === 'basic.inout') {
+            if (wire.source.block === block.id) {
+              connections.assign.push('assign w' + w + ' = ' + getPortName(name, block, i, project.nameList) + ';');
+              wireSource[w] = getPortName(name, block, i, project.nameList);
+            }
+          }
           else if (block.type === 'basic.busInput' || block.type === 'basic.busOutput') {
             if (wire.source.block === block.id) {
               var portname = getPortName(name, block, i, project.nameList) + wire.source.port;
@@ -825,6 +798,7 @@ angular.module('icestudio')
 
         if (block.type !== 'basic.input' &&
             block.type !== 'basic.output' &&
+            block.type !== 'basic.inout' &&
             block.type !== 'basic.constant' &&
             block.type !== 'basic.memory' &&
             block.type !== 'basic.info' &&
@@ -1174,7 +1148,8 @@ angular.module('icestudio')
       for (i in blocks) {
         block = blocks[i];
         if (block.type === 'basic.input' ||
-            block.type === 'basic.output') {
+            block.type === 'basic.output' ||
+            block.type === 'basic.inout') {
 
           if (block.data.pins.length > 1) {
             for (var p in block.data.pins) {
@@ -1264,7 +1239,8 @@ angular.module('icestudio')
       for (i in blocks) {
         block = blocks[i];
         if ((block.type === 'basic.input' ||
-            block.type === 'basic.output') &&
+            block.type === 'basic.output' ||
+            block.type === 'basic.inout') &&
             !block.data.virtual
             ) {
 
@@ -1500,8 +1476,10 @@ angular.module('icestudio')
     function mainIO(project) {
       var input = [];
       var output = [];
+      var inout = [];
       var inputUnnamed = 0;
       var outputUnnamed = 0;
+      var inoutUnnamed = 0;
       var graph = project.design.graph;
       for (var i in graph.blocks) {
         var block = graph.blocks[i];
@@ -1537,11 +1515,28 @@ angular.module('icestudio')
             outputUnnamed += 1;
           }
         }
+        else if (block.type === 'basic.inout') {
+          if (block.data.name) {
+            inout.push({
+              id: utils.digestId(block.id),
+              name: block.data.name.replace(/ /g, '_'),
+              range: block.data.range
+            });
+          }
+          else {
+            inout.push({
+              id: utils.digestId(block.id),
+              name: inoutUnnamed.toString()
+            });
+            inoutUnnamed += 1;
+          }
+        }
       }
 
       return {
         input: input,
-        output: output
+        output: output,
+        inout: inout
       };
     }
 
