@@ -1263,8 +1263,10 @@ angular.module('icestudio')
 
       for (i in blocks) {
         block = blocks[i];
-        if (block.type === 'basic.input' ||
-            block.type === 'basic.output') {
+        if ((block.type === 'basic.input' ||
+            block.type === 'basic.output') &&
+            !block.data.virtual
+            ) {
 
           if (block.data.pins.length > 1) {
             for (var p in block.data.pins) {
