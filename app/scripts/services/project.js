@@ -663,7 +663,7 @@ angular.module('icestudio')
             {
               type: 'text',
               title: gettextCatalog.getString('Enter the name for new block'),
-              value: nodePath.basename(filepath, nodePath.extname(filepath))
+              value: ''
             },
             {
               type:'combobox',
@@ -682,6 +682,13 @@ angular.module('icestudio')
           utils.renderForm(formSpecs, function(evt, values) {
             var blockName = values[0];
             var moduleId = values[1];
+
+            var moduleObj = data[moduleId];
+
+            if (blockName === '') {
+              blockName = moduleObj.name + ' file wrapper';
+            }
+
             if (resultAlert) {
               resultAlert.dismiss(false);
             }
@@ -691,7 +698,6 @@ angular.module('icestudio')
               resultAlert = alertify.warning(gettextCatalog.getString('Wrong block name {{name}}', { name: labels[0] }))
             }
             // Find module and create new dependency
-            var moduleObj = data[moduleId];
             process.nextTick(function() {
               utils.portSelectionPrompt(moduleObj, function(evt, values) {
                 var moduleProj = _default();
@@ -715,19 +721,23 @@ angular.module('icestudio')
                 codes.push('');
                 if (moduleObj.parameter.length > 0) {
                   codes.push(moduleObj.name + ' #(');
+                  var code_params = [];
                   for (var p in moduleObj.parameter) {
                     var pname = moduleObj.parameter[p].name;
-                    codes.push(['  .', pname, '(', pname, ')'].join(''));
+                    code_params.push(['  .', pname, '(', pname, ')'].join(''));
                   }
+                  codes.push(code_params.join(',\n'));
                   codes.push([') u_', moduleObj.name, ' ('].join(''));
                 } else {
                   codes.push([moduleObj.name, ' u_', moduleObj.name, ' ('].join(''));
                 }
+                var code_ports = [];
                 for (var p in moduleObj.port) {
                   var pname = moduleObj.port[p].name;
-                  codes.push(['  .', pname, '(', pname, ')'].join(''));
+                  code_ports.push(['  .', pname, '(', pname, ')'].join(''));
                 }
-                codes.push(')');
+                codes.push(code_ports.join(',\n'));
+                codes.push(');');
                 codes.push('');
 
                 var parameterCount = moduleObj.parameter.length;
