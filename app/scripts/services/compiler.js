@@ -661,7 +661,7 @@ angular.module('icestudio')
                 graph.wires[wi].target.port === 'inlabel' ||
                 getBlockById(graph.wires[wi].source.block).type === 'basic.busInterface' ||
                 getBlockById(graph.wires[wi].target.block).type === 'basic.busInterface' ||
-                CheckTypeIsBus(graph.wires[wi].size)
+                CheckTypeIsBus(graph.wires[wi].size) 
                 ){
 
                     graph.wiresVirtual.push(graph.wires[wi]);
@@ -688,6 +688,9 @@ angular.module('icestudio')
           if (paramValue) {
             connections.localparam.push('localparam p' + w + ' = ' + project.nameList.paramNames[name][constantBlock.id] + ';');
           }
+        }
+        else if (getBlockById(wire.source.block).type === 'basic.inout') {
+          // Remove inout wire to avoid TD bug on assigning inout
         }
         else {
           // Wires
@@ -717,7 +720,6 @@ angular.module('icestudio')
           }
           else if (block.type === 'basic.inout') {
             if (wire.source.block === block.id) {
-              connections.assign.push('assign w' + w + ' = ' + getPortName(name, block, i, project.nameList) + ';');
               wireSource[w] = getPortName(name, block, i, project.nameList);
             }
           }
@@ -793,6 +795,15 @@ angular.module('icestudio')
       var instances = [];
       var blocks = graph.blocks;
 
+      var getBlockById = function(id) {
+        for (var b in graph.blocks) {
+          var block = graph.blocks[b];
+          if (block.id === id) {
+            return block;
+          }
+        }
+      }
+      
       for (var b in blocks) {
         var block = blocks[b];
 
@@ -853,8 +864,13 @@ angular.module('icestudio')
               connectPort(wire.source, portsNames, ports, block, nameList);
             }
             if (block.id === wire.target.block) {
+              var sourceblk = getBlockById(wire.source.block);
+              if (sourceblk.type === 'basic.inout') {
+                // Make direct connection
+                w = nameList.portNames[name][sourceblk.id];
+              }
               if (wire.source.port !== 'constant-out' &&
-                  wire.source.port !== 'memory-out') {
+                  wire.source.port !== 'memory-out' ) {
                 connectPort(wire.target, portsNames, ports, block, nameList);
               }
             }
@@ -880,7 +896,11 @@ angular.module('icestudio')
             portsNames.push(portName);
             var port = '';
             port += ' .' + portName;
-            port += '(w' + w + ')';
+            if (isNaN(w)) {
+              port += '(' + w + ')';
+            } else {
+              port += '(w' + w + ')';
+            }
             ports.push(port);
           }
         }
