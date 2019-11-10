@@ -694,7 +694,7 @@ angular.module('icestudio')
         }
         else {
           // Wires
-          var range = wire.size ? ' [' + (wire.size-1) +':0] ' : ' ';
+          var range = (wire.size && wire.size > 1) ? ' [' + (wire.size-1) +':0] ' : ' ';
           connections.wire.push('wire' + range + 'w' + w + ';');
         }
         // Assignations
