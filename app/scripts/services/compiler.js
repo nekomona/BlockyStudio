@@ -345,12 +345,12 @@ angular.module('icestudio')
             var p = bus.ports[pi];
             if (p.source === 'master') {
               ports.in.push({
-                name: pname + p.name_master,
+                name: pname + p.name_slave,
                 range: (p.size > 1) ? (['[', p.size-1, ':0]'].join('')) : '' 
               })
             } else {
               ports.out.push({
-                name: pname + p.name_master,
+                name: pname + p.name_slave,
                 range: (p.size > 1) ? (['[', p.size-1, ':0]'].join('')) : '' 
               })
             }
@@ -363,12 +363,12 @@ angular.module('icestudio')
             var p = bus.ports[pi];
             if (p.source === 'slave') {
               ports.in.push({
-                name: pname + p.name_slave,
+                name: pname + p.name_master,
                 range: (p.size > 1) ? (['[', p.size-1, ':0]'].join('')) : '' 
               })
             } else {
               ports.out.push({
-                name: pname + p.name_slave,
+                name: pname + p.name_master,
                 range: (p.size > 1) ? (['[', p.size-1, ':0]'].join('')) : '' 
               })
             }
@@ -471,16 +471,16 @@ angular.module('icestudio')
             if (typeof vwiresLut[vwireName] === 'undefined') {
               vwiresLut[vwireName]={source:[],target:[]};
             }
-            if (p.source === 'master') {
-              vwiresLut[vwireName].source.push({
+            if (p.source === 'slave') {
+              vwiresLut[vwireName].target.push({
                 block: block.id,
-                port: p.name_master,
+                port: p.name_slave,
                 size: p.size 
               });
             } else {
-              vwiresLut[vwireName].target.push({
+              vwiresLut[vwireName].source.push({
                 block: block.id,
-                port: p.name_master,
+                port: p.name_slave,
                 size: p.size 
               });  
             }
@@ -496,16 +496,16 @@ angular.module('icestudio')
             if (typeof vwiresLut[vwireName] === 'undefined') {
               vwiresLut[vwireName]={source:[],target:[]};
             }
-            if (p.source === 'slave') {
-              vwiresLut[vwireName].source.push({
+            if (p.source === 'master') {
+              vwiresLut[vwireName].target.push({
                 block: block.id,
-                port: p.name_slave,
+                port: p.name_master,
                 size: p.size 
               });
             } else {
-              vwiresLut[vwireName].target.push({
+              vwiresLut[vwireName].source.push({
                 block: block.id,
-                port: p.name_slave,
+                port: p.name_master,
                 size: p.size 
               });  
             }
