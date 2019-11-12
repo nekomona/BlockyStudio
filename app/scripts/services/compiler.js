@@ -299,11 +299,11 @@ angular.module('icestudio')
       return params;
     }
 
-    var lookupPortMonitorName = function(name, bustype) {
+    var lookupPortMonitorName = function(name, bustype, dir) {
       var bus = common.bus[bustype];
       for (var pi in bus.ports) {
         var p = bus.ports[pi];
-        if (name == p.name_master || name == p.name_slave || name == p.name_monitor) {
+        if (name == p['name_'+dir]) {
           return p.name_monitor
         }
       }
@@ -441,8 +441,9 @@ angular.module('icestudio')
         var procBusInterface = function (block, busname, bustype) {
           for(var vwi in graph.wires) {
             var vw = graph.wires[vwi];
+            var dir = block.data.direction;
             if(vw.source.block === block.id){
-              var vwireName = busname + lookupPortMonitorName(vw.source.port, bustype);
+              var vwireName = busname + lookupPortMonitorName(vw.source.port, bustype, dir);
               if(typeof vwiresLut[vwireName] === 'undefined'){
                   vwiresLut[vwireName]={source:[],target:[]};
               }
@@ -451,7 +452,7 @@ angular.module('icestudio')
               vwiresLut[vwireName].target.push(twire);
             }
             if(vw.target.block === block.id){
-              var vwireName = busname + lookupPortMonitorName(vw.target.port, bustype);
+              var vwireName = busname + lookupPortMonitorName(vw.target.port, bustype, dir);
               if(typeof vwiresLut[vwireName] === 'undefined'){
                   vwiresLut[vwireName]={source:[],target:[]};
               }

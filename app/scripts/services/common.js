@@ -18,6 +18,7 @@ angular.module('icestudio')
     this.selectedBoard = null;
     this.pinoutInputHTML = '';
     this.pinoutOutputHTML = '';
+    this.pinoutInoutHTML = '';
 
     // Selected collection
     this.defaultCollection = null;

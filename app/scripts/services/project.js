@@ -571,11 +571,14 @@ angular.module('icestudio')
               }
             }
 
-            if (ssource > 0 && ssource == starget) {
-              wire.size = ssource;
-            } else {
-              // Someway to raise an error
-              wire.size = 96;
+            // Check if wire is dynamic at both end
+            if (blockIDMap[wsource.block] && blockIDMap[wtarget.block]) {
+              if (ssource > 0 && ssource == starget) {
+                wire.size = ssource;
+              } else {
+                // Someway to raise an error
+                wire.size = 96;
+              }
             }
             
           }
@@ -864,9 +867,12 @@ angular.module('icestudio')
                   var newPortPort = { "name": portObj.name };
                   var newPortBlock = {
                     "id": joint.util.uuid(),
-                    "type": "basic." + ((portObj.direction === 'input') ? 'input' : 'output'),
+                    "type": "basic." + ((portObj.direction === 'input') ? 'input' : 
+                                        (portObj.direction === 'output') ? 'output' :
+                                        'inout'),
                     "data": {
-                      "name": portObj.name
+                      "name": portObj.name,
+                      "virtual": true
                     }
                   }
                   var newPortWire = null
@@ -1115,7 +1121,8 @@ angular.module('icestudio')
             block.design.graph.blocks[i].data.size = (pins && pins.length > 1) ? pins.length : undefined;
           }
           delete block.design.graph.blocks[i].data.pins;
-          delete block.design.graph.blocks[i].data.virtual;
+          // virtual always true for dependency, helps for copy out from dependency
+          block.design.graph.blocks[i].data.virtual = true;
         }
       }
       return block;
