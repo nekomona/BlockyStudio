@@ -170,7 +170,7 @@ joint.shapes.ice.Model = joint.shapes.basic.Generic.extend({
       ref: '.body'
     };
 
-    if (port.inout) {
+    if (port.inout && !port.label.startsWith('<- ')) {
       port.label = ['<- ', port.label, ' ->'].join('');
     }
 
@@ -635,7 +635,7 @@ joint.shapes.ice.Input = joint.shapes.ice.Model.extend({
   defaults: joint.util.deepSupplement({
     type: 'ice.Input',
     size: {
-      width: 96,
+      width: 128,
       height: 64
     }
   }, joint.shapes.ice.Model.prototype.defaults)
@@ -645,7 +645,7 @@ joint.shapes.ice.Output = joint.shapes.ice.Model.extend({
   defaults: joint.util.deepSupplement({
     type: 'ice.Output',
     size: {
-      width: 96,
+      width: 128,
       height: 64
     }
   }, joint.shapes.ice.Model.prototype.defaults)
@@ -655,7 +655,7 @@ joint.shapes.ice.Inout = joint.shapes.ice.Model.extend({
   defaults: joint.util.deepSupplement({
     type: 'ice.Inout',
     size: {
-      width: 96,
+      width: 128,
       height: 64
     }
   }, joint.shapes.ice.Model.prototype.defaults)
