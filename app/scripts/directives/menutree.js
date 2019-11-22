@@ -31,7 +31,7 @@ angular.module('icestudio')
       },
       template: '<li ng-class="child.children ? ((right ? \'dropdown-submenu-right\' : \'dropdown-submenu\') + (child.children.length > 10 ? \' dropdown-submenu-long\':\'\')) : \'\'" uib-dropdown>' +
                   '<a href ng-click="click(child.path)" ng-if="!child.children">{{ child.name | translate }}</a>' +
-                  '<a href uib-dropdown-toggle ng-if="child.children">{{ child.name | translate }}</a>' +
+                  '<a href uib-dropdown-toggle ng-if="child.children && child.children.length > 0">{{ child.name | translate }}</a>' +
                 '</li>',
       link: function(scope, element/*, attrs*/) {
         scope.click = function(path) {
