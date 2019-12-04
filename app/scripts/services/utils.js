@@ -125,11 +125,11 @@ angular.module('icestudio')
         proc.stdin.end();
       }
       
-      proc.stdout.on("data", function(chunk) {
+      proc.stdout.on('data', function(chunk) {
         reslist.push(chunk);
       });
 
-      proc.stdout.on("end", function() {
+      proc.stdout.on('end', function() {
         callback(reslist.join(''));
       });
     };
@@ -347,7 +347,7 @@ angular.module('icestudio')
           resolve({});
         }
       });
-    }
+    };
 
     /*function compressJSON(data, callback) {
       var content = JSON.stringify(data);
@@ -621,8 +621,7 @@ angular.module('icestudio')
         var ptcheck = '\
           <div class="checkbox">\
             <label><input type="checkbox" checked id="formport' + p + '"/>' + port.name + port.packed + '</label>\
-          </div>\
-        '
+          </div>';
         if (port.direction === 'input') {
           inputs.push(ptcheck);
         } else {
@@ -636,22 +635,22 @@ angular.module('icestudio')
 
       content.push('<div class="port-content">');
       // Inputs
-      content.push('<div class="port-row">')
-      content.push('<p> Input(s): </p>')
+      content.push('<div class="port-row">');
+      content.push('<p> Input(s): </p>');
       content.push('<div class="port-scroll">');
       content.push(inputs.join('\n'));
       content.push('</div>'); // port-scroll
       content.push('</div>'); // port-row
       // Outputs
-      content.push('<div class="port-row">')
-      content.push('<p> Output(s): </p>')
+      content.push('<div class="port-row">');
+      content.push('<p> Output(s): </p>');
       content.push('<div class="port-scroll">');
       content.push(outputs.join('\n'));
       content.push('</div>'); // port-scroll
       content.push('</div>'); // port-row
       // Parameters
-      content.push('<div class="port-para-row">')
-      content.push('<p> Parameter(s): </p>')
+      content.push('<div class="port-para-row">');
+      content.push('<p> Parameter(s): </p>');
       content.push('<div class="port-scroll">');
       for (var p in moduledata.parameter) {
         content.push('\
@@ -1322,11 +1321,13 @@ angular.module('icestudio')
       gui.Shell.openExternal(url);
     };
 
+    /*
     this.evalInContext = function (js, context) {
       return function () {
         return eval(js);
-      }.call(context)
+      }.call(context);
     };
+    */
 
     this.evalParameter = function (paramList, context) {
       var self = this;
@@ -1335,8 +1336,8 @@ angular.module('icestudio')
       context = context || {};
 
       var evalObject = {
-        "paramList": paramList,
-        "context": context
+        'paramList': paramList,
+        'context': context
       };
 
       return new Promise(function (resolve, reject) {
@@ -1416,8 +1417,8 @@ angular.module('icestudio')
       context = context || {};
 
       var evalObject = {
-        "portDesc": portDesc,
-        "context": context
+        'portDesc': portDesc,
+        'context': context
       };
       
       return new Promise(function (resolve, reject) {

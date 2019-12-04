@@ -2118,7 +2118,7 @@ joint.shapes.ice.BusInterface = joint.shapes.ice.Model.extend({
       height: 128
     }
   }, joint.shapes.ice.Model.prototype.defaults)
-})
+});
 
 joint.shapes.ice.BusInterfaceView = joint.shapes.ice.ModelView.extend({
 
@@ -2206,10 +2206,10 @@ joint.shapes.ice.BusInterfaceView = joint.shapes.ice.ModelView.extend({
   updateBox: function () {
     var i, port;
     var bbox = this.model.getBBox();
-    var data = this.model.get('data');
+    // var data = this.model.get('data');
     var state = this.model.get('state');
     
-    var rules = this.model.get('rules');
+    // var rules = this.model.get('rules');
     var leftPorts = this.model.get('leftPorts');
     var rightPorts = this.model.get('rightPorts');
     var modelId = this.model.id;

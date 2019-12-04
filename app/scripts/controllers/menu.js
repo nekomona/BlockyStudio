@@ -282,7 +282,7 @@ angular.module('icestudio')
           project.addRTLFile(filepaths[i]);
         }
       });
-    }
+    };
 
     $scope.exportVerilog = function () {
       exportFromCompiler('verilog', 'Verilog', '.v');
@@ -295,7 +295,7 @@ angular.module('icestudio')
       } else {
         exportFromCompiler('ioconstr', 'PCF', '.pcf');
       }
-    }
+    };
 
     $scope.exportTestbench = function () {
       exportFromCompiler('testbench', 'Testbench', '.v');
@@ -350,16 +350,16 @@ angular.module('icestudio')
           var projname = projpath.substr(projpath.lastIndexOf('\\') + 1);
           projpath = projpath.substr(0, projpath.lastIndexOf('\\')) + '\\';
 
-          var bkBUILD_DIR = common.BUILD_DIR;
+          var bk_build_dir = common.BUILD_DIR;
           common.BUILD_DIR = projpath;
 
           tools.exportProject(projname)
             .then(function () {
-              common.BUILD_DIR = bkBUILD_DIR;
+              common.BUILD_DIR = bk_build_dir;
               updateWorkingdir(filepath);
             })
             .catch(function () {
-              common.BUILD_DIR = bkBUILD_DIR;
+              common.BUILD_DIR = bk_build_dir;
             });
 
         });

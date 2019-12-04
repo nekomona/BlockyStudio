@@ -573,7 +573,7 @@ angular.module('icestudio')
 
             // Check if wire is dynamic at both end
             if (blockIDMap[wsource.block] && blockIDMap[wtarget.block]) {
-              if (ssource > 0 && ssource == starget) {
+              if (ssource > 0 && ssource === starget) {
                 wire.size = ssource;
               } else {
                 // Someway to raise an error
@@ -677,8 +677,8 @@ angular.module('icestudio')
           ];
           for (var i in data) {
             formSpecs[1].options.push({
-                                        "value": i,
-                                        "label": data[i].name
+                                        'value': i,
+                                        'label': data[i].name
                                       });
           }
           formSpecs[1].value = '0';
@@ -698,7 +698,7 @@ angular.module('icestudio')
             // Validate values
             if (!blockName) {
               evt.cancel = true;
-              resultAlert = alertify.warning(gettextCatalog.getString('Wrong block name {{name}}', { name: labels[0] }))
+              resultAlert = alertify.warning(gettextCatalog.getString('Wrong block name {{name}}', { name: blockName }));
             }
             // Find module and create new dependency
             process.nextTick(function() {
@@ -706,11 +706,11 @@ angular.module('icestudio')
                 var moduleProj = _default();
                 var fname = nodePath.basename(filepath);
                 moduleProj.package.name = blockName;
-                moduleProj.package.description = "imported from " + fname;
+                moduleProj.package.description = 'imported from ' + fname;
                 moduleProj.design.board = profile.board;
 
                 // Remove unused ports completely
-                var selPort = []
+                var selPort = [];
                 for (var p in moduleObj.port) {
                   if (values.port[p]) {
                     selPort.push(moduleObj.port[p]);
@@ -785,55 +785,55 @@ angular.module('icestudio')
 
                 // Build Code block
                 var cblock = {
-                  "id": joint.util.uuid(),
-                  "type": "basic.code",
-                  "data": {
-                    "code": codes.join('\n'),
-                    "params": [],
-                    "ports": {
-                      "in": [],
-                      "out": []
+                  'id': joint.util.uuid(),
+                  'type': 'basic.code',
+                  'data': {
+                    'code': codes.join('\n'),
+                    'params': [],
+                    'ports': {
+                      'in': [],
+                      'out': []
                     }
                   },
-                  "position": {
-                    "x": -HCodeSize/2 - 12,
-                    "y": -VCodeSize/2 - 8
+                  'position': {
+                    'x': -HCodeSize/2 - 12,
+                    'y': -VCodeSize/2 - 8
                   },
-                  "size": {
-                    "width": HCodeSize,
-                    "height": VCodeSize
+                  'size': {
+                    'width': HCodeSize,
+                    'height': VCodeSize
                   }
                 };
 
                 // Build Parameter blocks
                 // Hsize 15 Vsize 10
                 var hPosition = {
-                  "x": -HBlocksSize/2,
-                  "y": -VGraphSize/2
+                  'x': -HBlocksSize/2,
+                  'y': -VGraphSize/2
                 };
                 var hStep = 15 * gsize;
                 for (var i in moduleObj.parameter) {
                   var paraObj = moduleObj.parameter[i];
-                  var newParaPort = { "name": paraObj.name };
+                  var newParaPort = { 'name': paraObj.name };
                   var newParaBlock = {
-                    "id": joint.util.uuid(),
-                    "type": "basic.constant",
-                    "data": {
-                      "name": paraObj.name,
-                      "value": paraObj.value,
-                      "local": !values.parameter[i]
+                    'id': joint.util.uuid(),
+                    'type': 'basic.constant',
+                    'data': {
+                      'name': paraObj.name,
+                      'value': paraObj.value,
+                      'local': !values.parameter[i]
                     },
-                  }
+                  };
                   var newParaWire = {
-                    "source": {
-                      "block": newParaBlock.id,
-                      "port": "constant-out"
+                    'source': {
+                      'block': newParaBlock.id,
+                      'port': 'constant-out'
                     },
-                    "target": {
-                      "block": cblock.id,
-                      "port": paraObj.name
+                    'target': {
+                      'block': cblock.id,
+                      'port': paraObj.name
                     }
-                  }
+                  };
                   newParaBlock.position = utils.clone(hPosition);
                   hPosition.x += hStep;
                   cblock.data.params.push(newParaPort);
@@ -843,64 +843,64 @@ angular.module('icestudio')
                 // Build Port blocks
                 // Hsize 15 Vsize 10
                 var vPositionI = {
-                  "x": -HGraphSize/2,
-                  "y": -VBlocksSize/2
+                  'x': -HGraphSize/2,
+                  'y': -VBlocksSize/2
                 };
                 var vPositionO = {
-                  "x": HGraphSize/2 - hStep,
-                  "y": -VBlocksSize/2
+                  'x': HGraphSize/2 - hStep,
+                  'y': -VBlocksSize/2
                 };
                 var vStepI = 10*gsize;
                 if (inputCount > 1) {
                   vStepI += (VBlocksSize - 10*gsize*inputCount) / (inputCount-1);
-                } else if(inputCount == 1) {
+                } else if(inputCount === 1) {
                   vPositionI.y = -10*gsize/2;
                 }
                 var vStepO = 10*gsize;
                 if (outputCount > 1) {
-                  vStepO += (VBlocksSize - 10*gsize*outputCount) / (outputCount-1)
-                } else if(outputCount == 1) {
+                  vStepO += (VBlocksSize - 10*gsize*outputCount) / (outputCount-1);
+                } else if(outputCount === 1) {
                   vPositionO.y = -10*gsize/2;
                 }
                 for (var i in moduleObj.port) {
                   var portObj = moduleObj.port[i];
-                  var newPortPort = { "name": portObj.name };
+                  var newPortPort = { 'name': portObj.name };
                   var newPortBlock = {
-                    "id": joint.util.uuid(),
-                    "type": "basic." + ((portObj.direction === 'input') ? 'input' : 
+                    'id': joint.util.uuid(),
+                    'type': 'basic.' + ((portObj.direction === 'input') ? 'input' : 
                                         (portObj.direction === 'output') ? 'output' :
                                         'inout'),
-                    "data": {
-                      "name": portObj.name,
-                      "virtual": true
+                    'data': {
+                      'name': portObj.name,
+                      'virtual': true
                     }
-                  }
-                  var newPortWire = null
+                  };
+                  var newPortWire = null;
                   if (portObj.direction === 'input') {
                     newPortWire = {
-                      "source": {
-                        "block": newPortBlock.id,
-                        "port": "out"
+                      'source': {
+                        'block': newPortBlock.id,
+                        'port': 'out'
                       },
-                      "target": {
-                        "block": cblock.id,
-                        "port": portObj.name
+                      'target': {
+                        'block': cblock.id,
+                        'port': portObj.name
                       }
-                    }
+                    };
                     
                     newPortBlock.position = utils.clone(vPositionI);
                     vPositionI.y += vStepI;
                   } else {
                     newPortWire = {
-                      "source": {
-                        "block": cblock.id,
-                        "port": portObj.name
+                      'source': {
+                        'block': cblock.id,
+                        'port': portObj.name
                       },
-                      "target": {
-                        "block": newPortBlock.id,
-                        "port": "in"
+                      'target': {
+                        'block': newPortBlock.id,
+                        'port': 'in'
                       }
-                    }
+                    };
                     newPortBlock.position = utils.clone(vPositionO);
                     vPositionO.y += vStepO;
                   }
@@ -909,7 +909,7 @@ angular.module('icestudio')
                   if (portObj.packed) {
                     // var wsize = utils.evalRange(portObj.packed, env)
                     // To eval
-                    var wsize = 1
+                    var wsize = 1;
                     if (portObj.packed.match(/[^0-9\[\]:]/)) {
                       newPortPort.dynamic = true;
                       newPortBlock.data.dynamic = true;
@@ -943,7 +943,7 @@ angular.module('icestudio')
             });
           });
           console.log(data);
-        })
+        });
     };
 
     function copyIncludedFiles(files, origPath, destPath, callback) {

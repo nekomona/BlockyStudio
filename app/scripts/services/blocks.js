@@ -611,10 +611,10 @@ angular.module('icestudio')
         }
         // Validate values
         if (inputName !== '') {
-          var paramInfo = utils.parseParamLabel(inputName, common.PATTERN_GLOBAL_PARAM_LABEL);
-          if (paramInfo) {
+          var nameInfo = utils.parseParamLabel(inputName, common.PATTERN_GLOBAL_PARAM_LABEL);
+          if (nameInfo) {
             evt.cancel = false;
-            blockInstance.data.name = paramInfo.name;
+            blockInstance.data.name = nameInfo.name;
           }
           else {
             evt.cancel = true;
@@ -804,8 +804,7 @@ angular.module('icestudio')
           value: 'master',
           options: [
             { value: 'master', label: gettextCatalog.getString('master') },
-            { value: 'slave', label: gettextCatalog.getString('slave') },
-            { value: 'monitor', label: gettextCatalog.getString('monitor') }
+            { value: 'slave', label: gettextCatalog.getString('slave') }
           ]
         },
         {
@@ -1312,7 +1311,7 @@ angular.module('icestudio')
             name: item.data.name,
             label: item.data.name + ' ' + item.data.type,
             size: item.data.type,
-          })
+          });
         }
         else if (item.type === 'basic.busOutput') {
           rightPorts.push({
@@ -1320,7 +1319,7 @@ angular.module('icestudio')
             name: item.data.name,
             label: item.data.name + ' ' + item.data.type,
             size: item.data.type,
-          })
+          });
         }
         else if (item.type === 'basic.inout') {
           leftPorts.push({
@@ -1431,7 +1430,7 @@ angular.module('icestudio')
           name: 'bus',
           label: data.type + ' bus',
           size: data.type
-        })
+        });
       }
 
       var cell = new joint.shapes.ice.BusInterface({
@@ -2188,8 +2187,7 @@ angular.module('icestudio')
           value: block.data.direction,
           options: [
             { value: 'master', label: gettextCatalog.getString('master') },
-            { value: 'slave', label: gettextCatalog.getString('slave') },
-            { value: 'monitor', label: gettextCatalog.getString('monitor') }
+            { value: 'slave', label: gettextCatalog.getString('slave') }
           ]
         },
         {
@@ -2214,8 +2212,7 @@ angular.module('icestudio')
           return;
         }
         // Create blocks
-        if (   (block.data.direction || '') !== (busdir || '')
-            || (block.data.type || '') !== (bustype || '') ) {
+        if ( ((block.data.direction || '') !== (busdir || '')) || ((block.data.type || '') !== (bustype || '')) ) {
           var blockInstance = {
             id: null,
             data: {

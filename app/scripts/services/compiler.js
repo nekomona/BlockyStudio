@@ -55,8 +55,12 @@ angular.module('icestudio')
 
     function assocIncludes(arr, val, normkey) {
       for (var key in arr) {
-        if (normkey && normkey === key) continue;
-        if (arr[key] === val) return key;
+        if (normkey && normkey === key) { 
+          continue;
+        }
+        if (arr[key] === val) {
+          return key;
+        }
       }
       return null;
     }
@@ -84,7 +88,7 @@ angular.module('icestudio')
         return moduleNames[name+block.id];
       } else if (moduleNames[block.type]) {
         // dependencies blocks
-        return moduleNames[block.type]
+        return moduleNames[block.type];
       } else {
         var genname = '';
         if (block.type === 'basic.code') {
@@ -120,7 +124,7 @@ angular.module('icestudio')
       var portNames = nameList.portNames;
 
       if (!portNames[name]) {
-        portNames[name] = new Array();
+        portNames[name] = [];
       }
 
       if (portNames[name][block.id]) {
@@ -162,7 +166,7 @@ angular.module('icestudio')
       var paramNames = nameList.paramNames;
 
       if (!paramNames[name]) {
-        paramNames[name] = new Array();
+        paramNames[name] = [];
       }
 
       if (paramNames[name][block.id]) {
@@ -288,10 +292,10 @@ angular.module('icestudio')
           });
         }
         else if (block.type === 'basic.memory') {
-          var name = getParamName(name, block, i, project.nameList);
+          var memname = getParamName(name, block, i, project.nameList);
           params.push({
-            name: name,
-            value: '"' + name + '.list"'
+            name: memname,
+            value: '"' + memname + '.list"'
           });
         }
       }
@@ -303,11 +307,11 @@ angular.module('icestudio')
       var bus = common.bus[bustype];
       for (var pi in bus.ports) {
         var p = bus.ports[pi];
-        if (name == p['name_'+dir]) {
-          return p.name_monitor
+        if (name === p['name_'+dir]) {
+          return p.name_monitor;
         }
       }
-    }
+    };
 
     function getPorts(name, project) {
       var ports = {
@@ -347,12 +351,12 @@ angular.module('icestudio')
               ports.in.push({
                 name: pname + p.name_slave,
                 range: (p.size > 1) ? (['[', p.size-1, ':0]'].join('')) : '' 
-              })
+              });
             } else {
               ports.out.push({
                 name: pname + p.name_slave,
                 range: (p.size > 1) ? (['[', p.size-1, ':0]'].join('')) : '' 
-              })
+              });
             }
           }
         }
@@ -365,12 +369,12 @@ angular.module('icestudio')
               ports.in.push({
                 name: pname + p.name_master,
                 range: (p.size > 1) ? (['[', p.size-1, ':0]'].join('')) : '' 
-              })
+              });
             } else {
               ports.out.push({
                 name: pname + p.name_master,
                 range: (p.size > 1) ? (['[', p.size-1, ':0]'].join('')) : '' 
-              })
+              });
             }
           }
         }
@@ -652,7 +656,7 @@ angular.module('icestudio')
               return block;
             }
           }
-        }
+        };
 
         for (wi=0;wi<graph.wires.length;wi++){
 
@@ -803,7 +807,7 @@ angular.module('icestudio')
             return block;
           }
         }
-      }
+      };
       
       for (var b in blocks) {
         var block = blocks[b];
@@ -1002,9 +1006,9 @@ angular.module('icestudio')
           // Setup module name dict ahead of compiling
           if (!project.nameList) {
             project.nameList = nameList;
-            nameList.moduleNames = new Array();
-            nameList.portNames = new Array();
-            nameList.paramNames = new Array();
+            nameList.moduleNames = [];
+            nameList.portNames = [];
+            nameList.paramNames = [];
           } else {
             nameList = project.nameList;
           }
@@ -1255,7 +1259,7 @@ angular.module('icestudio')
       opt = opt || {};
 
       var nameList = {};
-      nameList.portNames = new Array();
+      nameList.portNames = [];
 
       for (i in blocks) {
         block = blocks[i];
@@ -1272,9 +1276,9 @@ angular.module('icestudio')
               code += 'set_pin_assignment {';
               code += getPortName('main', block, i, nameList);
               code += '[' + pin.index + ']';
-              code += '} { LOCATION = '
+              code += '} { LOCATION = ';
               code += value;
-              code += '; IOSTANDARD = LVCMOS33;  }'
+              code += '; IOSTANDARD = LVCMOS33;  }';
               code += '\n';
             }
           }
@@ -1283,9 +1287,9 @@ angular.module('icestudio')
             value = block.data.virtual ? '' : pin.value;
             code += 'set_pin_assignment {';
             code += getPortName('main', block, i, nameList);
-            code += '} { LOCATION = '
+            code += '} { LOCATION = ';
             code += value;
-            code += '; IOSTANDARD = LVCMOS33;  }'
+            code += '; IOSTANDARD = LVCMOS33;  }';
             code += '\n';
           }
         }
@@ -1320,9 +1324,9 @@ angular.module('icestudio')
           if (!found) {
             code += 'set_pin_assignment {';
             code += initPorts[i].name;
-            code += '} { LOCATION = '
+            code += '} { LOCATION = ';
             code += initPorts[i].pin;
-            code += '; IOSTANDARD = LVCMOS33;  }'
+            code += '; IOSTANDARD = LVCMOS33;  }';
             code += '\n';
           }
         }
@@ -1333,7 +1337,7 @@ angular.module('icestudio')
         for (i in initPins) {
           code += 'set_pin_assignment {vinit[' + i + ']} { LOCATION = ';
           code += initPins[i].pin;
-          code += '; IOSTANDARD = LVCMOS33;  }'
+          code += '; IOSTANDARD = LVCMOS33;  }';
           code += '\n';
         }
       }
