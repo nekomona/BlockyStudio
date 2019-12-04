@@ -265,22 +265,35 @@ angular.module('icestudio')
                     minZoom: ZOOM_MIN,
                     maxZoom: ZOOM_MAX,
                     eventsListenerElement: targetElement,
+                    updateTimer: null,
                     /*beforeZoom: function(oldzoom, newzoom) {
         },*/
                     onZoom: function (scale) {
+                        var self = this;
                         state.zoom = scale;
                         // Close expanded combo
                         if (document.activeElement.className === 'select2-search__field') {
                             $('select').select2('close');
                         }
-                        updateCellBoxes();
+                        if (!this.updateTimer) {
+                            this.updateTimer = setTimeout(function () {
+                                self.updateTimer = null;
+                                updateCellBoxes();
+                            }, 50);
+                        }
                     },
                     /*beforePan: function(oldpan, newpan) {
         },*/
                     onPan: function (newPan) {
+                        var self = this;
                         state.pan = newPan;
                         graph.trigger('state', state);
-                        updateCellBoxes();
+                        
+                        if (this.updateTimer) {
+                            clearTimeout(this.updateTimer);
+                            this.updateTimer = null;
+                        }
+                        updateCellBoxes(); 
                     }
                 });
 
@@ -293,8 +306,10 @@ angular.module('icestudio')
                         var elementView = paper.findViewByModel(cell);
                         // Pan blocks
                         elementView.updateBox();
-                        // Pan selection boxes
-                        selectionView.updateBox(elementView.model);
+                        if (selection.contains(elementView.model)) {
+                            // Pan selection boxes
+                            selectionView.updateBox(elementView.model);
+                        }
                     }
                 });
             }
@@ -463,16 +478,30 @@ angular.module('icestudio')
                 }
             });
 
+            paper.on('cell:pointerdown', function (cellView/*, evt*/) {
+                self.pointerDown = true;
+                self.pointerMoveCount = 0;
+            });
+
             paper.on('cell:pointerup', function (cellView/*, evt*/) {
                 graph.trigger('batch:start');
                 processReplaceBlock(cellView.model);
                 graph.trigger('batch:stop');
-                if (paper.options.enabled) {
+                if (paper.options.enabled && self.dragging) {
                     updateWiresOnObstacles();
                 }
+                self.pointerDown = false;
+                self.dragging = false;
             });
 
             paper.on('cell:pointermove', function (cellView/*, evt*/) {
+                if (self.pointerDown) {
+                    if (self.pointerMoveCount < 3) {
+                        self.pointerMoveCount += 1;
+                    } else {
+                        self.dragging = true;
+                    }
+                }
                 debounceDisableReplacedBlock(cellView.model);
             });
 

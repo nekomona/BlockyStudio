@@ -724,6 +724,7 @@ joint.shapes.ice.OutputLabel = joint.shapes.ice.Model.extend({
 joint.shapes.ice.IOView = joint.shapes.ice.ModelView.extend({
 
   initialize: function () {
+    var self = this;
     _.bindAll(this, 'updateBox');
     joint.dia.ElementView.prototype.initialize.apply(this, arguments);
 
@@ -803,6 +804,23 @@ joint.shapes.ice.IOView = joint.shapes.ice.ModelView.extend({
       }
     });
 
+    // Cache port div to avoid searching
+    var modelId = this.model.id;
+
+    process.nextTick(function() {
+      this.portWireLeft = this.model.get('leftPorts').map(function (p) {
+        return self.$('#port-wire-' + modelId + '-' + p.id);
+      });
+      this.portWireRight = this.model.get('rightPorts').map(function (p) {
+        return self.$('#port-wire-' + modelId + '-' + p.id);
+      });
+      if (data && data.ports && data.ports.in) {
+        this.portWireRule = data.ports.in.map(function (p) {
+          return self.$('#port-default-' + modelId + '-' + p.name);
+        });
+      }
+    }.bind(this));
+
     this.updateBox();
 
     this.updating = false;
@@ -857,6 +875,13 @@ joint.shapes.ice.IOView = joint.shapes.ice.ModelView.extend({
     }
 
     $label.text(name || '');
+
+    // Process hidden class outside updatebox to speedup
+    if (data.name || data.range || data.clock) {
+      this.headerSelector.removeClass('hidden');
+    } else {
+      this.headerSelector.addClass('hidden');
+    }
 
     if (virtual) {
       // Virtual port (green)
@@ -931,25 +956,34 @@ joint.shapes.ice.IOView = joint.shapes.ice.ModelView.extend({
 
     // Render ports width
     var width = WIRE_WIDTH * state.zoom;
-    this.$('.port-wire').css('stroke-width', width);
+    // this.$('.port-wire').css('stroke-width', width);
     // Set buses
     for (i in leftPorts) {
       port = leftPorts[i];
+      if (!this.portWireLeft) continue;
       if (port.size > 1) {
-        this.$('#port-wire-' + modelId + '-' + port.id).css('stroke-width', width * 3);
+        this.portWireLeft[i].css('stroke-width', width * 3);
+        // this.$('#port-wire-' + modelId + '-' + port.id).css('stroke-width', width * 3);
+      } else {
+        this.portWireLeft[i].css('stroke-width', width);
       }
     }
     for (i in rightPorts) {
       port = rightPorts[i];
+      if (!this.portWireRight) continue;
       if (port.size > 1) {
-        this.$('#port-wire-' + modelId + '-' + port.id).css('stroke-width', width * 3);
+        this.portWireRight[i].css('stroke-width', width * 3);
+        // this.$('#port-wire-' + modelId + '-' + port.id).css('stroke-width', width * 3);
+      } else {
+        this.portWireRight[i].css('stroke-width', width);
       }
     }
     // Render rules
     if (data && data.ports && data.ports.in) {
       for (i in data.ports.in) {
         port = data.ports.in[i];
-        var portDefault = this.$('#port-default-' + modelId + '-' + port.name);
+        if (!this.portWireRule) continue;
+        var portDefault = this.portWireRule[i];
         if (rules && port.default && port.default.apply) {
           portDefault.css('display', 'inline');
           portDefault.find('path').css('stroke-width', width);
@@ -980,12 +1014,6 @@ joint.shapes.ice.IOView = joint.shapes.ice.ModelView.extend({
       height: Math.round(bbox.height - fpgaTopOffset),
       transform: 'scale(' + state.zoom + ')'
     });
-
-    if (data.name || data.range || data.clock) {
-      this.headerSelector.removeClass('hidden');
-    } else {
-      this.headerSelector.addClass('hidden');
-    }
 
     // Render block
     this.$box.css({
@@ -1465,6 +1493,8 @@ joint.shapes.ice.CodeView = joint.shapes.ice.ModelView.extend({
     _.bindAll(this, 'updateBox');
     joint.dia.ElementView.prototype.initialize.apply(this, arguments);
 
+    this.editorTimer = null;
+
     var id = sha1(this.model.get('id')).toString().substring(0, 6);
     var editorLabel = 'editor' + id;
     this.$box = $(joint.util.template(
@@ -1504,6 +1534,8 @@ joint.shapes.ice.CodeView = joint.shapes.ice.ModelView.extend({
     // Prevent paper from handling pointerdown.
     this.editorSelector.on('mousedown click', function (event) { event.stopPropagation(); });
 
+    // Cache CSS rule for ace editor to reduce function call overhead
+    this.aceRule = getCSSRule('.ace_folding-enabled > .ace_gutter-cell');
     this.updateBox();
 
     this.updating = false;
@@ -1681,6 +1713,8 @@ joint.shapes.ice.CodeView = joint.shapes.ice.ModelView.extend({
     var rightPorts = this.model.get('rightPorts');
     var modelId = this.model.id;
 
+    var self = this;
+
     // Set font size
     if (this.editor) {
       if (this.prevZoom !== state.zoom) {
@@ -1709,18 +1743,28 @@ joint.shapes.ice.CodeView = joint.shapes.ice.ModelView.extend({
         // Scale padding
         this.$box.find('.ace_text-layer').css('padding', '0px ' + Math.round(4 * state.zoom) + 'px');
         // Scale gutters
-        var rule = getCSSRule('.ace_folding-enabled > .ace_gutter-cell');
-        if (rule) {
-          rule.style.paddingLeft = Math.round(19 * state.zoom) + 'px';
-          rule.style.paddingRight = Math.round(13 * state.zoom) + 'px';
+        if (this.aceRule) {
+          this.aceRule.style.paddingLeft = Math.round(19 * state.zoom) + 'px';
+          this.aceRule.style.paddingRight = Math.round(13 * state.zoom) + 'px';
         }
         // Scale font size
-        this.editor.setFontSize(Math.round(aceFontSize * state.zoom));
+        // self.editor.setFontSize(Math.round(aceFontSize * state.zoom));
         // Scale cursor
         this.editor.renderer.$cursorLayer.$padding = Math.round(4 * state.zoom);
       }
-      this.editor.resize();
+      // this.editor.resize();
+
+      
+      // Debounced resizer
+      if (this.editorTimer !== null) {
+        clearTimeout(this.editorTimer);
+      }
+      this.editorTimer = setTimeout(function () {
+        self.editor.setFontSize(Math.round(aceFontSize * state.zoom));
+        self.editor.resize()
+      }, 200);
     }
+
 
     // Set ports width
     var width = WIRE_WIDTH * state.zoom;
